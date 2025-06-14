@@ -31,8 +31,12 @@ const handleCreatePlan = async (planData) => {
   }
 }
 
-const handleRecordAdded = () => {
-  fetchPlans() // Refresh plans to get updated progress
+const handleRecordAdded = async () => {
+  await fetchPlans()
+}
+
+const handlePlanDeleted = async (planId) => {
+  plans.value = plans.value.filter(plan => plan._id !== planId)
 }
 
 onMounted(fetchPlans)
@@ -78,6 +82,7 @@ onMounted(fetchPlans)
         :key="plan._id"
         :plan="plan"
         @record-added="handleRecordAdded"
+        @deleted="handlePlanDeleted"
         class="w-full"
       />
     </div>

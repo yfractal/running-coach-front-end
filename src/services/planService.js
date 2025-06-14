@@ -54,10 +54,12 @@ export const planService = {
     }
   },
 
-  async getPlanProgress(id) {
-    const response = await fetch(`${API_BASE_URL}/plans/${id}/progress`);
+  async getPlanRecords(id) {
+    const response = await fetch(`${API_BASE_URL}/plans/${id}/records`, {
+      method: 'GET',
+    });
     if (!response.ok) {
-      throw new Error('Failed to fetch plan progress');
+      throw new Error('Failed to get plan records');
     }
     return response.json();
   },
