@@ -63,6 +63,9 @@ export const planService = {
   },
 
   async createPlanRecord(planId, record) {
+    console.log('createPlanRecord');
+    console.log(planId);
+    console.log(record);
     const response = await fetch(`${API_BASE_URL}/plans/${planId}/records`, {
       method: 'POST',
       headers: {
