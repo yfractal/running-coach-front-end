@@ -90,4 +90,13 @@ export const planService = {
       body: JSON.stringify({ plan_record: record }),
     });
   },
+
+  async deletePlanRecord(planId, recordId) {
+    const response = await fetch(`${API_BASE_URL}/plans/${planId}/records/${recordId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete plan record');
+    }
+  },
 }; 
