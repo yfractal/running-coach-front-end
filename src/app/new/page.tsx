@@ -10,7 +10,7 @@ export default function NewPlanPage() {
   const handleSubmit = async (planData: any) => {
     try {
       const newPlan = await planService.createPlan(planData);
-      router.push(`/plans/${newPlan.id}`);
+      router.push(`/${newPlan.id}`);
     } catch (error) {
       console.error('Failed to create plan:', error);
       // You might want to show an error message to the user here

@@ -6,7 +6,7 @@ import { Plan } from '@/types/plan';
 import { planService } from '@/services/planService';
 import { PlanCard } from '@/components/PlanCard';
 
-export default function PlansPage() {
+export default function HomePage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export default function PlansPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Your Plans</h1>
         <Link
-          href="/plans/new"
+          href="/new"
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
         >
           Create New Plan
@@ -65,7 +65,7 @@ export default function PlansPage() {
           <h3 className="text-xl font-medium text-gray-600 mb-4">No plans yet</h3>
           <p className="text-gray-500 mb-6">Create your first plan to start tracking your progress!</p>
           <Link
-            href="/plans/new"
+            href="/new"
             className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
             Create Your First Plan
