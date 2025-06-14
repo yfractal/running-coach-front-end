@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Plan, DurationType } from '@/types/plan';
+import { Plan, duration_type } from '@/types/plan';
 
 interface PlanFormProps {
   initialPlan?: Partial<Plan>;
-  onSubmit: (plan: Omit<Plan, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (plan: Omit<Plan, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
 
@@ -16,12 +16,12 @@ export const PlanForm: React.FC<PlanFormProps> = ({
     name: initialPlan.name || '',
     unit: initialPlan.unit || '',
     quality: initialPlan.quality || 0,
-    subUnit: initialPlan.subUnit || '',
-    subQuality: initialPlan.subQuality || 0,
-    durationType: initialPlan.durationType || 'daily' as DurationType,
-    durationValue: initialPlan.durationValue || 1,
-    startDate: initialPlan.startDate || new Date().toISOString().split('T')[0],
-    endDate: initialPlan.endDate || '',
+    sub_unit: initialPlan.sub_unit || '',
+    sub_quality: initialPlan.sub_quality || 0,
+    duration_type: initialPlan.duration_type || 'daily' as duration_type,
+    duration_value: initialPlan.duration_value || 1,
+    start_date: initialPlan.start_date || new Date().toISOString().split('T')[0],
+    end_date: initialPlan.end_date || '',
     description: initialPlan.description || '',
     status: initialPlan.status || 'active',
   });
@@ -81,28 +81,28 @@ export const PlanForm: React.FC<PlanFormProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="subQuality" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="sub_quality" className="block text-sm font-medium text-gray-700">
               Sub-Target Amount (Optional)
             </label>
             <input
               type="number"
-              id="subQuality"
-              value={formData.subQuality}
-              onChange={(e) => setFormData({ ...formData, subQuality: parseFloat(e.target.value) })}
+              id="sub_quality"
+              value={formData.sub_quality}
+              onChange={(e) => setFormData({ ...formData, sub_quality: parseFloat(e.target.value) })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               min="0"
               step="0.01"
             />
           </div>
           <div>
-            <label htmlFor="subUnit" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="sub_unit" className="block text-sm font-medium text-gray-700">
               Sub-Unit (Optional)
             </label>
             <input
               type="text"
-              id="subUnit"
-              value={formData.subUnit}
-              onChange={(e) => setFormData({ ...formData, subUnit: e.target.value })}
+              id="sub_unit"
+              value={formData.sub_unit}
+              onChange={(e) => setFormData({ ...formData, sub_unit: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
@@ -110,13 +110,13 @@ export const PlanForm: React.FC<PlanFormProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="durationType" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="duration_type" className="block text-sm font-medium text-gray-700">
               Duration Type
             </label>
             <select
-              id="durationType"
-              value={formData.durationType}
-              onChange={(e) => setFormData({ ...formData, durationType: e.target.value as DurationType })}
+              id="duration_type"
+              value={formData.duration_type}
+              onChange={(e) => setFormData({ ...formData, duration_type: e.target.value as duration_type })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="daily">Daily</option>
@@ -125,14 +125,14 @@ export const PlanForm: React.FC<PlanFormProps> = ({
             </select>
           </div>
           <div>
-            <label htmlFor="durationValue" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="duration_value" className="block text-sm font-medium text-gray-700">
               Duration Value
             </label>
             <input
               type="number"
-              id="durationValue"
-              value={formData.durationValue}
-              onChange={(e) => setFormData({ ...formData, durationValue: parseInt(e.target.value) })}
+              id="duration_value"
+              value={formData.duration_value}
+              onChange={(e) => setFormData({ ...formData, duration_value: parseInt(e.target.value) })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
               min="1"
@@ -142,30 +142,30 @@ export const PlanForm: React.FC<PlanFormProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
               Start Date
             </label>
             <input
               type="date"
-              id="startDate"
-              value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              id="start_date"
+              value={formData.start_date}
+              onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
             />
           </div>
           <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
               End Date
             </label>
             <input
               type="date"
-              id="endDate"
-              value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              id="end_date"
+              value={formData.end_date}
+              onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
-              min={formData.startDate}
+              min={formData.start_date}
             />
           </div>
         </div>

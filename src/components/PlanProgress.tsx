@@ -6,7 +6,7 @@ interface PlanProgressProps {
 }
 
 export const PlanProgress: React.FC<PlanProgressProps> = ({ progress }) => {
-  const { plan, remainingValue, remainingDays } = progress;
+  const { plan, remaining_value, remaining_days } = progress;
   const progressPercentage = Math.min(100, progress.progress);
 
   return (
@@ -33,21 +33,21 @@ export const PlanProgress: React.FC<PlanProgressProps> = ({ progress }) => {
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-sm text-gray-500">Remaining</div>
             <div className="text-xl font-semibold text-gray-900">
-              {remainingValue} {plan.unit}
+              {remaining_value} {plan.unit}
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-sm text-gray-500">Days Left</div>
-            <div className="text-xl font-semibold text-gray-900">{remainingDays}</div>
+            <div className="text-xl font-semibold text-gray-900">{remaining_days}</div>
           </div>
         </div>
 
         {/* Daily Target */}
-        {plan.subQuality && (
+        {plan.sub_quality && (
           <div className="bg-blue-50 rounded-lg p-4">
-            <div className="text-sm text-blue-600">Target per {plan.durationType}</div>
+            <div className="text-sm text-blue-600">Target per {plan.duration_type}</div>
             <div className="text-xl font-semibold text-blue-700">
-              {plan.subQuality} {plan.subUnit}
+              {plan.sub_quality} {plan.sub_unit}
             </div>
           </div>
         )}
@@ -56,11 +56,11 @@ export const PlanProgress: React.FC<PlanProgressProps> = ({ progress }) => {
         <div className="flex justify-between text-sm text-gray-500">
           <div>
             <span className="block text-gray-400">Start Date</span>
-            <span>{new Date(plan.startDate).toLocaleDateString()}</span>
+            <span>{new Date(plan.start_date).toLocaleDateString()}</span>
           </div>
           <div className="text-right">
             <span className="block text-gray-400">End Date</span>
-            <span>{new Date(plan.endDate).toLocaleDateString()}</span>
+            <span>{new Date(plan.end_date).toLocaleDateString()}</span>
           </div>
         </div>
       </div>

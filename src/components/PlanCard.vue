@@ -9,7 +9,7 @@ const props = defineProps({
 })
 
 const daysLeft = computed(() => {
-  return Math.max(0, Math.ceil((new Date(props.plan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+  return Math.max(0, Math.ceil((new Date(props.plan.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
 })
 
 const statusColor = computed(() => {
@@ -39,11 +39,11 @@ const statusColor = computed(() => {
       <p class="text-gray-600">
         Target: {{ plan.quality }} {{ plan.unit }}
       </p>
-      <p v-if="plan.subQuality" class="text-gray-600">
-        {{ plan.subQuality }} {{ plan.subUnit }} per {{ plan.durationType }}
+      <p v-if="plan.sub_quality" class="text-gray-600">
+        {{ plan.sub_quality }} {{ plan.sub_unit }} per {{ plan.duration_type }}
       </p>
       <div class="flex justify-between text-sm text-gray-500">
-        <span>Started: {{ new Date(plan.startDate).toLocaleDateString() }}</span>
+        <span>Started: {{ new Date(plan.start_date) }}</span>
         <span>{{ daysLeft }} days left</span>
       </div>
     </div>

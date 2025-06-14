@@ -1,4 +1,4 @@
-export type DurationType = 'daily' | 'weekly' | 'monthly';
+export type duration_type = 'daily' | 'weekly' | 'monthly';
 export type PlanStatus = 'active' | 'completed' | 'cancelled';
 
 export interface Plan {
@@ -6,17 +6,17 @@ export interface Plan {
   name: string;
   unit: string;
   quality: number;
-  subUnit?: string;
-  subQuality?: number;
-  durationType: DurationType;
-  durationValue: number;
-  startDate: string;
-  endDate: string;
+  sub_unit?: string;
+  sub_quality?: number;
+  duration_type: duration_type;
+  duration_value: number;
+  start_date: string;
+  end_date: string;
   status: PlanStatus;
   description?: string;
   metadata?: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PlanRecord {
@@ -26,14 +26,14 @@ export interface PlanRecord {
   date: string;
   notes?: string;
   metadata?: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PlanProgress {
   plan: Plan;
   progress: number;
-  remainingValue: number;
-  remainingDays: number;
+  remaining_value: number;
+  remaining_days: number;
   records: PlanRecord[];
 } 

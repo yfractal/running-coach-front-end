@@ -7,7 +7,7 @@ interface PlanCardProps {
 }
 
 export const PlanCard: React.FC<PlanCardProps> = ({ plan }) => {
-  const daysLeft = Math.max(0, Math.ceil((new Date(plan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+  const daysLeft = Math.max(0, Math.ceil((new Date(plan.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,13 +36,13 @@ export const PlanCard: React.FC<PlanCardProps> = ({ plan }) => {
           <p className="text-gray-600">
             Target: {plan.quality} {plan.unit}
           </p>
-          {plan.subQuality && (
+          {plan.sub_quality && (
             <p className="text-gray-600">
-              {plan.subQuality} {plan.subUnit} per {plan.durationType}
+              {plan.sub_quality} {plan.sub_unit} per {plan.duration_type}
             </p>
           )}
           <div className="flex justify-between text-sm text-gray-500">
-            <span>Started: {new Date(plan.startDate).toLocaleDateString()}</span>
+            <span>Started: {new Date(plan.start_date).toLocaleDateString()}</span>
             <span>{daysLeft} days left</span>
           </div>
         </div>

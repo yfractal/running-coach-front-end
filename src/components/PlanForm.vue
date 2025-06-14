@@ -7,12 +7,12 @@ const formData = ref({
   name: '',
   unit: '',
   quality: 0,
-  subUnit: '',
-  subQuality: 0,
-  durationType: 'daily',
-  durationValue: 1,
-  startDate: new Date().toISOString().split('T')[0],
-  endDate: '',
+  sub_unit: '',
+  sub_quality: 0,
+  duration_type: 'daily',
+  duration_value: 1,
+  start_date: new Date().toISOString().split('T')[0],
+  end_date: '',
   description: '',
   status: 'active'
 })
@@ -69,26 +69,26 @@ const handleSubmit = () => {
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="subQuality" class="block text-sm font-medium text-gray-700">
+          <label for="sub_quality" class="block text-sm font-medium text-gray-700">
             Sub-Target Amount (Optional)
           </label>
           <input
             type="number"
-            id="subQuality"
-            v-model.number="formData.subQuality"
+            id="sub_quality"
+            v-model.number="formData.sub_quality"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             min="0"
             step="0.01"
           />
         </div>
         <div>
-          <label for="subUnit" class="block text-sm font-medium text-gray-700">
+          <label for="sub_unit" class="block text-sm font-medium text-gray-700">
             Sub-Unit (Optional)
           </label>
           <input
             type="text"
-            id="subUnit"
-            v-model="formData.subUnit"
+            id="sub_unit"
+            v-model="formData.sub_unit"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -96,12 +96,12 @@ const handleSubmit = () => {
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="durationType" class="block text-sm font-medium text-gray-700">
+          <label for="duration_type" class="block text-sm font-medium text-gray-700">
             Duration Type
           </label>
           <select
-            id="durationType"
-            v-model="formData.durationType"
+            id="duration_type"
+            v-model="formData.duration_type"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="daily">Daily</option>
@@ -110,13 +110,13 @@ const handleSubmit = () => {
           </select>
         </div>
         <div>
-          <label for="durationValue" class="block text-sm font-medium text-gray-700">
+          <label for="duration_value" class="block text-sm font-medium text-gray-700">
             Duration Value
           </label>
           <input
             type="number"
-            id="durationValue"
-            v-model.number="formData.durationValue"
+            id="duration_value"
+            v-model.number="formData.duration_value"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
             min="1"
@@ -126,28 +126,28 @@ const handleSubmit = () => {
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="startDate" class="block text-sm font-medium text-gray-700">
+          <label for="start_date" class="block text-sm font-medium text-gray-700">
             Start Date
           </label>
           <input
             type="date"
-            id="startDate"
-            v-model="formData.startDate"
+            id="start_date"
+            v-model="formData.start_date"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
         </div>
         <div>
-          <label for="endDate" class="block text-sm font-medium text-gray-700">
+          <label for="end_date" class="block text-sm font-medium text-gray-700">
             End Date
           </label>
           <input
             type="date"
-            id="endDate"
-            v-model="formData.endDate"
+            id="end_date"
+            v-model="formData.end_date"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
-            :min="formData.startDate"
+            :min="formData.start_date"
           />
         </div>
       </div>

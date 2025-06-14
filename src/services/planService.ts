@@ -14,7 +14,7 @@ export const planService = {
     return response.json();
   },
 
-  async createPlan(plan: Omit<Plan, 'id' | 'createdAt' | 'updatedAt'>): Promise<Plan> {
+  async createPlan(plan: Omit<Plan, 'id' | 'created_at' | 'updated_at'>): Promise<Plan> {
     const response = await fetch(`${API_BASE_URL}/plans`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +49,7 @@ export const planService = {
 
   async createPlanRecord(
     planId: string,
-    record: Omit<PlanRecord, 'id' | 'planId' | 'createdAt' | 'updatedAt'>
+    record: Omit<PlanRecord, 'id' | 'planId' | 'created_at' | 'updated_at'>
   ): Promise<PlanRecord> {
     const response = await fetch(`${API_BASE_URL}/plans/${planId}/records`, {
       method: 'POST',

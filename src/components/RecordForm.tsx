@@ -4,7 +4,7 @@ import { PlanRecord } from '@/types/plan';
 interface RecordFormProps {
   planId: string;
   initialRecord?: Partial<PlanRecord>;
-  onSubmit: (record: Omit<PlanRecord, 'id' | 'planId' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (record: Omit<PlanRecord, 'id' | 'planId' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
 
