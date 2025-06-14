@@ -2,32 +2,23 @@
 import { ref, onMounted } from 'vue'
 import { planService } from '@/services/planService'
 import PlanCard from '@/components/PlanCard.vue'
-import PlanForm from '@/components/PlanForm.vue'
+import PlanInlineForm from '@/components/PlanInlineForm.vue'
 
 const plans = ref([])
-const loading = ref(true)
+const isLoading = ref(true)
 const error = ref(null)
-const showNewPlanForm = ref(false)
+const showCreateModal = ref(false)
 
 const fetchPlans = async () => {
   try {
-    loading.value = true
-    const data = await planService.getPlans()
-    plans.value = data
+    isLoading.value = true
+    error.value = null
+    plans.value = await planService.getPlans()
   } catch (err) {
-    error.value = 'Failed to load plans. Please try again later.'
+    console.error('Failed to fetch plans:', err)
+    error.value = 'Failed to load plans. Please try again.'
   } finally {
-    loading.value = false
-  }
-}
-
-const handleCreatePlan = async (planData) => {
-  try {
-    await planService.createPlan(planData)
-    await fetchPlans()
-    showNewPlanForm.value = false
-  } catch (err) {
-    error.value = 'Failed to create plan. Please try again.'
+    isLoading.value = false
   }
 }
 
@@ -46,44 +37,63 @@ const handlePlanUpdated = (updatedPlan) => {
   }
 }
 
+const handleCreatePlan = async (newPlan) => {
+  try {
+    await planService.createPlan(newPlan)
+    await fetchPlans()
+    showCreateModal.value = false
+  } catch (error) {
+    console.error('Failed to create plan:', error)
+    alert('Failed to create plan. Please try again.')
+  }
+}
+
 onMounted(fetchPlans)
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Your Plans</h1>
+      <h1 class="text-2xl font-bold text-gray-900">Running Plans</h1>
       <button
-        @click="showNewPlanForm = true"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        @click="showCreateModal = true"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
         Create New Plan
       </button>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+    <div v-if="isLoading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading plans...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="flex flex-col items-center justify-center py-12">
-      <p class="text-red-600 mb-4">{{ error }}</p>
+    <div v-else-if="error" class="text-center py-12">
+      <p class="text-red-600">{{ error }}</p>
       <button
         @click="fetchPlans"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
       >
-        Retry
+        Try Again
       </button>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="plans.length === 0" class="text-center py-12">
-      <p class="text-gray-500">No plans yet. Create your first plan to get started!</p>
+      <p class="text-gray-600 mb-4">No plans yet. Create your first running plan!</p>
+      <button
+        @click="showCreateModal = true"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Create New Plan
+      </button>
     </div>
 
     <!-- Plans List -->
-    <div v-else class="flex flex-col gap-4">
+    <div v-else-if="plans.length > 0" class="space-y-4">
       <PlanCard
         v-for="plan in plans"
         :key="plan._id"
@@ -95,13 +105,13 @@ onMounted(fetchPlans)
       />
     </div>
 
-    <!-- New Plan Modal -->
-    <div v-if="showNewPlanForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-semibold">Create New Plan</h2>
+    <!-- Create Plan Modal -->
+    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-gray-900">Create New Plan</h2>
           <button
-            @click="showNewPlanForm = false"
+            @click="showCreateModal = false"
             class="text-gray-400 hover:text-gray-500"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,10 +119,24 @@ onMounted(fetchPlans)
             </svg>
           </button>
         </div>
-        <PlanForm
-          @submit="handleCreatePlan"
-          @cancel="showNewPlanForm = false"
-        />
+        <div class="p-4">
+          <PlanInlineForm
+            :plan="{
+              name: '',
+              description: '',
+              start_date: new Date().toISOString().split('T')[0],
+              duration_type: 'weekly',
+              duration_value: 1,
+              quality: '',
+              unit: '',
+              sub_quality: '',
+              sub_unit: '',
+              status: 'active'
+            }"
+            @save="handleCreatePlan"
+            @cancel="showCreateModal = false"
+          />
+        </div>
       </div>
     </div>
   </div>
