@@ -17,10 +17,6 @@ const props = defineProps({
 
 const emit = defineEmits(['recordAdded'])
 
-const daysLeft = computed(() => {
-  return Math.max(0, Math.ceil((new Date(props.plan.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-})
-
 const statusColor = computed(() => {
   switch (props.plan.status) {
     case 'active':
@@ -35,7 +31,6 @@ const statusColor = computed(() => {
 })
 
 const handleCardClick = () => {
-  console.log(props.plan);
   if (props.plan?._id) {
     router.push({ name: 'PlanDetails', params: { id: props.plan._id } })
   }
@@ -65,41 +60,62 @@ const handleRecordSubmit = async (record) => {
 <template>
   <div class="relative">
     <div 
-      class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer" 
+      class="bg-white rounded-lg shadow-md px-4 py-3 hover:shadow-lg transition-shadow duration-200 cursor-pointer" 
       @click="handleCardClick"
     >
-      <div class="flex justify-between items-start mb-4">
-        <h3 class="text-xl font-semibold text-gray-900">{{ plan.name }}</h3>
-        <span :class="['px-2 py-1 text-sm font-medium rounded-full', statusColor]">
-          {{ plan.status }}
-        </span>
-      </div>
-      
-      <div class="space-y-2">
-        <p class="text-gray-600">
-          Target: {{ plan.quality }} {{ plan.unit }}
-        </p>
-        <p v-if="plan.sub_quality" class="text-gray-600">
-          {{ plan.sub_quality }} {{ plan.sub_unit }} per {{ plan.duration_type }}
-        </p>
-        <div class="flex justify-between text-sm text-gray-500">
-          <span>Started: {{ new Date(plan.start_date).toLocaleDateString() }}</span>
-          <span>{{ daysLeft }} days left</span>
+      <div class="flex items-center gap-4">
+        <!-- Plan Name and Status -->
+        <div class="flex items-center gap-2 min-w-[200px]">
+          <h3 class="text-base font-semibold text-gray-900 truncate">{{ plan.name }}</h3>
+          <span :class="['px-2 py-0.5 text-xs font-medium rounded-full', statusColor]">
+            {{ plan.status }}
+          </span>
+        </div>
+
+        <!-- Target -->
+        <div class="flex items-center gap-1 text-sm text-gray-600 min-w-[150px]">
+          <span>{{ plan.quality }} {{ plan.unit }}</span>
+          <span v-if="plan.sub_quality" class="text-gray-400">
+            ({{ plan.sub_quality }} {{ plan.sub_unit }}/{{ plan.duration_type }})
+          </span>
+        </div>
+
+        <!-- Progress Bars -->
+        <div class="flex-1 flex items-center gap-4">
+          <!-- Progress Bar -->
+          <div class="flex-1 flex items-center gap-2">
+            <span class="text-xs text-gray-500 w-24">Progress:</span>
+            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-blue-500 rounded-full"
+                :style="{ width: `${plan.progress_percentage || 0}%` }"
+              ></div>
+            </div>
+            <span class="text-xs text-gray-500 w-12">{{ Math.round(plan.progress_percentage || 0) }}%</span>
+          </div>
+
+          <!-- Time Progress Bar -->
+          <div class="flex-1 flex items-center gap-2">
+            <span class="text-xs text-gray-500 w-24">Time Passed:</span>
+            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-gray-500 rounded-full"
+                :style="{ width: `${plan.time_passed_percentage || 0}%` }"
+              ></div>
+            </div>
+            <span class="text-xs text-gray-500 w-12">{{ Math.round(plan.time_passed_percentage || 0) }}%</span>
+          </div>
         </div>
       </div>
-
-      <p v-if="plan.description" class="mt-4 text-gray-600 text-sm line-clamp-2">
-        {{ plan.description }}
-      </p>
     </div>
 
     <!-- Add Record Button -->
     <button
       v-if="plan.status === 'active'"
       @click.stop="handleAddRecord"
-      class="absolute bottom-4 right-4 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
     >
-      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
       </svg>
     </button>
