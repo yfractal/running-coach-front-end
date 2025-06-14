@@ -39,6 +39,13 @@ const handlePlanDeleted = async (planId) => {
   plans.value = plans.value.filter(plan => plan._id !== planId)
 }
 
+const handlePlanUpdated = (updatedPlan) => {
+  const index = plans.value.findIndex(p => p._id === updatedPlan._id)
+  if (index !== -1) {
+    plans.value[index] = updatedPlan
+  }
+}
+
 onMounted(fetchPlans)
 </script>
 
@@ -83,6 +90,7 @@ onMounted(fetchPlans)
         :plan="plan"
         @record-added="handleRecordAdded"
         @deleted="handlePlanDeleted"
+        @updated="handlePlanUpdated"
         class="w-full"
       />
     </div>
