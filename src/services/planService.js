@@ -80,4 +80,14 @@ export const planService = {
     }
     return response.json();
   },
+
+  async updatePlanRecord(planId, recordId, record) {
+    const response = await fetch(`${API_BASE_URL}/plans/${planId}/records/${recordId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ plan_record: record }),
+    });
+  },
 }; 
