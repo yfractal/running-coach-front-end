@@ -48,6 +48,15 @@ const handleAddRecord = () => {
   showRecordForm.value = true
 }
 
+const maybeRound = (value) => {
+  const num = Number(value);
+  if (Number.isInteger(num)) {
+    return num;
+  } else {
+    return num.toFixed(2);
+  }
+}
+
 const handleRecordSubmit = async (record) => {
   try {
     isSubmitting.value = true
@@ -156,11 +165,38 @@ const handlePlanEditSave = async (updatedPlan) => {
     alert('Failed to update plan. Please try again.')
   }
 }
+
+const getProgressColor = computed(() => {
+  const progress = props.plan.progress_percentage || 0
+  if (progress >= 100) return 'bg-green-500'
+  if (progress >= 80) return 'bg-blue-500'
+  if (progress >= 50) return 'bg-yellow-500'
+  return 'bg-gray-500'
+})
+
+const formatValue = (value, unit) => {
+  if (!value) return '0'
+  if (unit === 'kg') return `${value}kg`
+  if (unit === 'km') return `${value}km`
+  if (unit === 'hour') return `${value}h`
+  if (unit === 'time' || unit === 'times') return `${value}次`
+  return `${value} ${unit}`
+}
+
+const getCompletedValue = computed(() => {
+  const progress = props.plan.progress_percentage || 0
+  const quality = props.plan.quality || 0
+  return (progress * quality) / 100
+})
+
 </script>
 
 <template>
   <div class="relative">
-    <div class="bg-white rounded-lg shadow-md px-4 py-3 hover:shadow-lg transition-shadow duration-200">
+    <div 
+      class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden"
+      :class="{ 'ring-2 ring-blue-100': isExpanded }"
+    >
       <!-- Plan Edit Form -->
       <PlanInlineForm
         v-if="isEditingPlan"
@@ -171,148 +207,162 @@ const handlePlanEditSave = async (updatedPlan) => {
 
       <!-- Main Card Content -->
       <div v-else>
-        <div class="flex items-center gap-4 cursor-pointer" @click="handleCardClick">
-          <!-- Plan Name and Status -->
-          <div class="flex items-center gap-2 min-w-[200px]">
-            <h3 class="text-base font-semibold text-gray-900 truncate">{{ plan.name }}</h3>
-            <span :class="['px-2 py-0.5 text-xs font-medium rounded-full', statusColor]">
-              {{ plan.status }}
-            </span>
-          </div>
-
-          <!-- Target -->
-          <div class="flex items-center gap-1 text-sm text-gray-600 min-w-[150px]">
-            <span>{{ plan.quality }} {{ plan.unit }}</span>
-            <span v-if="plan.sub_quality" class="text-gray-400">
-              ({{ plan.sub_quality }} {{ plan.sub_unit }}/{{ plan.duration_type }})
-            </span>
-          </div>
-
-          <!-- Progress Bars -->
-          <div class="flex-1 flex items-center gap-4">
-            <!-- Progress Bar -->
-            <div class="flex-1 flex items-center gap-2">
-              <span class="text-xs text-gray-500 w-24">Progress:</span>
-              <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  class="h-full bg-blue-500 rounded-full"
-                  :style="{ width: `${plan.progress_percentage || 0}%` }"
-                ></div>
+        <div class="p-4" :class="{ 'cursor-pointer': !isExpanded }" @click="handleCardClick">
+          <!-- Header -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900">{{ plan.name }}</h3>
+                <span :class="['px-2 py-0.5 text-xs font-medium rounded-full', statusColor]">
+                  {{ plan.status }}
+                </span>
               </div>
-              <span class="text-xs text-gray-500 w-12">{{ Math.round(plan.progress_percentage || 0) }}%</span>
             </div>
-
-            <!-- Time Progress Bar -->
-            <div class="flex-1 flex items-center gap-2">
-              <span class="text-xs text-gray-500 w-24">Time Passed:</span>
-              <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  class="h-full bg-gray-500 rounded-full"
-                  :style="{ width: `${plan.time_passed_percentage || 0}%` }"
-                ></div>
-              </div>
-              <span class="text-xs text-gray-500 w-12">{{ Math.round(plan.time_passed_percentage || 0) }}%</span>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-2">
-            <button
-              @click.stop="toggleExpand"
-              class="p-1.5 text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <svg 
-                class="w-5 h-5 transition-transform"
-                :class="{ 'rotate-180': isExpanded }"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
+            
+            <div class="flex items-center gap-1">
+              <button
+                v-if="plan.status === 'active'"
+                @click.stop="handleAddRecord"
+                class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                title="Add Record"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <button
-              v-if="plan.status === 'active'"
-              @click.stop="handleAddRecord"
-              class="p-1.5 text-blue-600 hover:text-blue-700 focus:outline-none"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-            <button
-              @click.stop="startEditPlan"
-              class="p-1.5 text-gray-400 hover:text-blue-600 focus:outline-none"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </button>
-            <button
-              @click.stop="handleDelete"
-              class="p-1.5 text-red-600 hover:text-red-700 focus:outline-none"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+              <button
+                @click.stop="startEditPlan"
+                class="p-1.5 text-gray-400 hover:bg-gray-50 rounded-full transition-colors"
+                title="Edit Plan"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+              <button
+                @click.stop="handleDelete"
+                class="p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors"
+                title="Delete Plan"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+              <button
+                @click.stop="toggleExpand"
+                class="p-1.5 text-gray-400 hover:bg-gray-50 rounded-full transition-colors"
+                title="Toggle Details"
+              >
+                <svg 
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-180': isExpanded }"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          <!-- Progress Section -->
+          <div class="space-y-4">
+            <!-- Main Progress -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1">
+                <div class="flex items-center justify-between text-sm mb-1.5">
+                  <span class="text-gray-600 font-medium">Progress</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-500">
+                      {{ maybeRound(plan.completed_value) }} / {{ plan.quality }} {{ plan.unit}}
+                    </span>
+                    <span :class="[
+                      'font-semibold',
+                      plan.progress_percentage >= 100 ? 'text-green-600' :
+                      plan.progress_percentage >= 80 ? 'text-blue-600' :
+                      'text-gray-900'
+                    ]">
+                      {{ Math.round(plan.progress_percentage || 0) }}%
+                    </span>
+                    <span class="text-gray-600 font-medium">Time Passed: {{ plan.time_passed_percentage || 0 }}%</span>
+
+                  </div>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    class="h-full rounded-full transition-all duration-300"
+                    :class="[getProgressColor]"
+                    :style="{ width: `${plan.progress_percentage || 0}%` }"
+                  ></div>
+                </div>
+                
+              </div>
+            </div>
+            </div>
         </div>
 
         <!-- Expanded Records Section -->
-        <div v-if="isExpanded" class="mt-4 border-t pt-4">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-medium text-gray-700">Records</h4>
-            <button
-              v-if="plan.status === 'active' && !showNewRecordForm"
-              @click="showNewRecordForm = true"
-              class="text-sm text-blue-600 hover:text-blue-700"
-            >
-              Add Record
-            </button>
-          </div>
-          
-          <!-- New Record Form -->
-          <RecordInlineForm
-            v-if="showNewRecordForm"
-            :unit="plan.unit"
-            :is-new="true"
-            @save="handleInlineRecordAdd"
-            @cancel="showNewRecordForm = false"
-          />
-          
-          <!-- Loading State -->
-          <div v-if="isLoadingRecords" class="py-4 text-center">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-          </div>
-          
-          <!-- Records List -->
-          <div v-else-if="records.length > 0" class="space-y-2">
-            <div v-for="record in records" :key="record._id" class="group">
-              <!-- Edit Form -->
-              <RecordInlineForm
-                v-if="editingRecordId === record._id"
-                :record="record"
-                :unit="plan.unit"
-                @save="(updatedRecord) => handleEditSave(record._id, updatedRecord)"
-                @cancel="editingRecordId = null"
-              />
-              
-              <!-- Record Display -->
-              <div 
-                v-else
-                class="flex items-center justify-between text-sm py-2 hover:bg-gray-50 rounded px-2"
+        <div v-if="isExpanded">
+          <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-medium text-gray-900">Training Records</h4>
+              <button
+                v-if="plan.status === 'active' && !showNewRecordForm"
+                @click="showNewRecordForm = true"
+                class="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                <div class="flex items-center gap-4">
-                  <span class="text-gray-600">{{ new Date(record.date).toLocaleDateString() }}</span>
-                  <span class="font-medium">{{ record.value }} {{ plan.unit }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span v-if="record.notes" class="text-gray-500 italic">{{ record.notes }}</span>
-                  <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                + Add Record
+              </button>
+            </div>
+            
+            <!-- New Record Form -->
+            <RecordInlineForm
+              v-if="showNewRecordForm"
+              :unit="plan.unit"
+              :is-new="true"
+              @save="handleInlineRecordAdd"
+              @cancel="showNewRecordForm = false"
+            />
+            
+            <!-- Loading State -->
+            <div v-if="isLoadingRecords" class="py-6 text-center">
+              <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-200 border-t-blue-600 mx-auto"></div>
+            </div>
+            
+            <!-- Records List -->
+            <div v-else-if="records.length > 0" class="space-y-1">
+              <div v-for="record in records" :key="record._id" class="group">
+                <!-- Edit Form -->
+                <RecordInlineForm
+                  v-if="editingRecordId === record._id"
+                  :record="record"
+                  :unit="plan.unit"
+                  @save="(updatedRecord) => handleEditSave(record._id, updatedRecord)"
+                  @cancel="editingRecordId = null"
+                />
+                
+                <!-- Record Display -->
+                <div 
+                  v-else
+                  class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white transition-colors duration-150"
+                >
+                  <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-gray-900">
+                      {{ formatValue(record.value, plan.unit) }}
+                    </span>
+                    <span class="text-sm text-gray-500">
+                      {{ new Date(record.date).toLocaleDateString() }}
+                    </span>
+                    <span v-if="record.notes" class="text-sm text-gray-500 italic">
+                      {{ record.notes }}
+                    </span>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                     <button
                       @click="startEditRecord(record._id)"
-                      class="p-1 text-gray-400 hover:text-blue-600"
+                      class="p-1 text-gray-400 hover:text-blue-600 rounded-full hover:bg-white"
+                      title="Edit Record"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -320,7 +370,8 @@ const handlePlanEditSave = async (updatedPlan) => {
                     </button>
                     <button
                       @click="handleDeleteRecord(record._id)"
-                      class="p-1 text-gray-400 hover:text-red-600"
+                      class="p-1 text-gray-400 hover:text-red-600 rounded-full hover:bg-white"
+                      title="Delete Record"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -330,11 +381,18 @@ const handlePlanEditSave = async (updatedPlan) => {
                 </div>
               </div>
             </div>
-          </div>
-          
-          <!-- No Records State -->
-          <div v-else class="py-4 text-center text-gray-500">
-            No records yet
+            
+            <!-- No Records State -->
+            <div v-else class="py-6 text-center text-gray-500">
+              <p class="text-sm">No training records yet</p>
+              <button
+                v-if="plan.status === 'active'"
+                @click="showNewRecordForm = true"
+                class="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Add your first record
+              </button>
+            </div>
           </div>
         </div>
       </div>

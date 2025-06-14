@@ -137,12 +137,12 @@ const durationTypes = ['dayly', 'weekly', 'monthly']
         />
       </div>
       <div class="w-40">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Sub Unit</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Sub Unit (Optional)</label>
         <input
           type="text"
           v-model="formData.sub_unit"
           class="w-full px-3 py-2 border rounded-md text-sm"
-          :required="formData.sub_quality"
+          placeholder="e.g., km"
         />
       </div>
     </div>
