@@ -183,6 +183,13 @@ const formatValue = (value, unit) => {
   return `${value} ${unit}`
 }
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayName = days[date.getDay()]
+  return dayName
+}
+
 const getCompletedValue = computed(() => {
   const progress = props.plan.progress_percentage || 0
   const quality = props.plan.quality || 0
@@ -351,9 +358,14 @@ const getCompletedValue = computed(() => {
                     <span class="text-sm font-medium text-gray-900">
                       {{ formatValue(record.value, plan.unit) }}
                     </span>
-                    <span class="text-sm text-gray-500">
-                      {{ new Date(record.date).toLocaleDateString() }}
-                    </span>
+                    <div class="flex flex-col">
+                      <span class="text-sm text-gray-500">
+                        {{ formatDate(record.date) }}
+                      </span>
+                      <span class="text-xs text-gray-400">
+                        {{ new Date(record.date).toLocaleDateString() }}
+                      </span>
+                    </div>
                     <span v-if="record.notes" class="text-sm text-gray-500 italic">
                       {{ record.notes }}
                     </span>
