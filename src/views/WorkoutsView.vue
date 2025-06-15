@@ -53,12 +53,12 @@ const formatWeekRange = (weekStart) => {
     
     <div v-else>
       <!-- Table Header -->
-      <div class="bg-gray-50 rounded-t-lg px-6 py-3 grid grid-cols-12 gap-4 text-sm font-medium text-gray-500">
-        <div class="col-span-1">Week</div>
+      <div class="bg-gray-50 rounded-t-lg px-6 py-3 grid grid-cols-12 gap-2 text-sm font-medium text-gray-500">
+        <div class="col-span-2">Week</div>
         <div class="col-span-1 text-right">Duration</div>
         <div class="col-span-1 text-right">Distance</div>
         <div class="col-span-1 text-right">Avg HR</div>
-        <div class="col-span-5">Zone Distribution</div>
+        <div class="col-span-4">Zone Distribution</div>
         <div class="flex">Types</div>
       </div>
 
@@ -66,10 +66,10 @@ const formatWeekRange = (weekStart) => {
       <div class="divide-y divide-gray-200">
         <div v-for="[weekStart, weekData] in Object.entries(summary).sort((a, b) => new Date(b[0]) - new Date(a[0]))" 
              :key="weekStart" 
-             class="bg-white px-6 py-4 grid grid-cols-12 gap-4 hover:bg-gray-50 transition-colors">
+             class="bg-white px-6 py-4 grid grid-cols-12 gap-2 hover:bg-gray-50 transition-colors">
           
           <!-- Week Range -->
-          <div class="col-span-1 text-sm text-gray-900">
+          <div class="col-span-2 text-sm text-gray-900">
             {{ formatWeekRange(weekStart) }}
           </div>
 
@@ -89,11 +89,11 @@ const formatWeekRange = (weekStart) => {
           </div>
 
           <!-- Heart Rate Zones -->
-          <div class="col-span-5">
+          <div class="col-span-4">
             <div class="flex space-x-0.5 mb-1">
               <div v-for="(hours, zone) in weekData.zone_durations_hours" 
                    :key="zone"
-                   class="h-4 rounded-sm relative group"
+                   class="h-4 rounded-sm relative group flex items-center justify-center overflow-visible"
                    :class="{
                      'bg-blue-400': zone === 'Zone 1',
                      'bg-teal-400': zone === 'Zone 2',
@@ -105,14 +105,18 @@ const formatWeekRange = (weekStart) => {
                      width: `${(hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100)}%`,
                      minWidth: hours > 0 ? '4px' : '0'
                    }">
-                <div class="opacity-0 group-hover:opacity-100 absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                <!-- Tooltip on hover -->
+                <div class="invisible group-hover:visible absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
                   {{ zone }}: {{ hours }}h
                 </div>
+                <!-- Zone text inside bar -->
+                <div class="text-xs text-white truncate px-1 pointer-events-none"
+                     :class="{
+                       'opacity-0': (hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100) < 15
+                     }">
+                  {{ zone.replace('Zone ', 'Z') }} ({{ hours }}h)
+                </div>
               </div>
-            </div>
-            <div class="flex justify-between text-xs text-gray-500">
-              <span>{{ Object.values(weekData.zone_durations_hours)[0] }}h</span>
-              <span>{{ Object.values(weekData.zone_durations_hours)[4] }}h</span>
             </div>
           </div>
 
