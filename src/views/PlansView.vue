@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import PlanCard from '@/components/PlanCard.vue'
 import PlanForm from '@/components/PlanForm.vue'
 import axios from 'axios'
@@ -8,11 +8,49 @@ const plans = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const showCreateModal = ref(false)
+const selectedWeek = ref(0) // 0 for current week, -1 for last week, 1 for next week, etc.
+
+// Format the week for display
+const formatWeekRange = (weekOffset) => {
+  const today = new Date()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - today.getDay() + 1 + (weekOffset * 7))
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+
+  const formatDate = (date) => {
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    return `${month}/${day}`
+  }
+
+  return `${formatDate(monday)} - ${formatDate(sunday)}`
+}
+
+// Add current week range display
+const currentWeekRange = computed(() => formatWeekRange(selectedWeek.value))
+
+const weekOptions = computed(() => {
+  // Generate options for 4 weeks before and after current week
+  const options = []
+  for (let i = -4; i <= 4; i++) {
+    options.push({
+      value: i,
+      label: i === 0 ? 'Current Week' : formatWeekRange(i),
+      range: formatWeekRange(i)
+    })
+  }
+  return options
+})
 
 const fetchPlans = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/plans')
+    const response = await axios.get('/api/plans', {
+      params: {
+        week: selectedWeek.value
+      }
+    })
     plans.value = response.data
   } catch (err) {
     error.value = 'Failed to load plans. Please try again later.'
@@ -33,6 +71,11 @@ const handleCreatePlan = async (planData) => {
   }
 }
 
+// Watch for week changes
+watch(selectedWeek, () => {
+  fetchPlans()
+})
+
 onMounted(() => {
   fetchPlans()
 })
@@ -41,33 +84,91 @@ onMounted(() => {
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
-    <div class="mb-8 flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Current Week Plans</h1>
-        <p class="mt-2 text-sm text-gray-600">
-          Track and manage your plans.
-        </p>
-      </div>
-      <button
-        @click="showCreateModal = true"
-        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        <svg 
-          class="-ml-1 mr-2 h-5 w-5" 
-          xmlns="http://www.w3.org/2000/svg" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
+    <div class="mb-8">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Week Plans</h1>
+          <p class="mt-2 text-sm text-gray-600">
+            Track and manage your plans.
+          </p>
+        </div>
+        <button
+          @click="showCreateModal = true"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          <path 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            stroke-width="2" 
-            d="M12 4v16m8-8H4" 
-          />
-        </svg>
-        Create Plan
-      </button>
+          <svg 
+            class="-ml-1 mr-2 h-5 w-5" 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="2" 
+              d="M12 4v16m8-8H4" 
+            />
+          </svg>
+          Create Plan
+        </button>
+      </div>
+
+      <!-- Week Selector -->
+      <div class="flex items-center justify-center w-full max-w-xs mx-auto mb-8">
+        <button
+          @click="selectedWeek--"
+          class="p-2 text-gray-600 hover:text-gray-800 focus:outline-none transition-colors duration-150"
+          :disabled="selectedWeek <= -4"
+          :class="{ 'opacity-50 cursor-not-allowed': selectedWeek <= -4 }"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        
+        <div class="relative flex-1 mx-4">
+          <button
+            @click="$refs.weekSelect.click()"
+            class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+          >
+            {{ currentWeekRange }}
+            <svg 
+              class="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <select
+            ref="weekSelect"
+            v-model="selectedWeek"
+            class="absolute inset-0 w-full opacity-0 cursor-pointer"
+          >
+            <option
+              v-for="option in weekOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.value === 0 ? 'Current Week' : option.range }}
+            </option>
+          </select>
+        </div>
+
+        <button
+          @click="selectedWeek++"
+          class="p-2 text-gray-600 hover:text-gray-800 focus:outline-none transition-colors duration-150"
+          :disabled="selectedWeek >= 4"
+          :class="{ 'opacity-50 cursor-not-allowed': selectedWeek >= 4 }"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Loading State -->
