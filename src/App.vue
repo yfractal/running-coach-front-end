@@ -1,9 +1,10 @@
 <script setup>
-// App root component
+import TheNavigation from '@/components/TheNavigation.vue'
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50">
+    <TheNavigation />
     <router-view />
   </div>
 </template>
