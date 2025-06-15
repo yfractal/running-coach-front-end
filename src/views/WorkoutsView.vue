@@ -12,8 +12,21 @@ const expandedWeeks = ref({})
 
 // Format duration in hours and minutes
 const formatDuration = (durationInSeconds) => {
-  const hours = Math.floor(durationInSeconds / 3600)
-  const minutes = Math.round((durationInSeconds % 3600) / 60)
+  if (typeof durationInSeconds === 'number') {
+    const hours = Math.floor(durationInSeconds / 3600)
+    const minutes = Math.round((durationInSeconds % 3600) / 60)
+    
+    if (hours === 0) {
+      return `${minutes}m`
+    }
+    return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`
+  } else if (typeof durationInSeconds === 'undefined') {
+    return '-'
+  }
+  
+  // If it's already in hours (from total_duration_hours)
+  const hours = Math.floor(durationInSeconds)
+  const minutes = Math.round((durationInSeconds - hours) * 60)
   
   if (hours === 0) {
     return `${minutes}m`
@@ -117,7 +130,7 @@ const formatWeekRange = (weekStart) => {
 
             <!-- Total Duration -->
             <div class="col-span-1 text-right text-sm text-gray-900">
-              {{ formatDuration(weekData.total_duration_seconds) }}
+              {{ formatDuration(weekData.total_duration_hours * 60 * 60) }}
             </div>
 
             <!-- Total Distance -->
