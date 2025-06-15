@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import ZoneTrendsChart from '../components/ZoneTrendsChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
@@ -72,6 +73,11 @@ const formatWeekRange = (weekStart) => {
     </div>
     
     <div v-else>
+      <!-- Zone Trends Chart -->
+      <div class="mb-8 w-full" style="height: 400px;">
+        <ZoneTrendsChart :summary="summary" />
+      </div>
+
       <!-- Table Header -->
       <div class="bg-gray-50 rounded-t-lg px-6 py-3 grid grid-cols-12 gap-2 text-sm font-medium text-gray-500">
         <div class="col-span-2">Week</div>
