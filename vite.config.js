@@ -15,6 +15,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  optimizeDeps: {
+    include: ['chartjs-plugin-zoom']
+  },
   server: {
     port: 3001,
     proxy: {

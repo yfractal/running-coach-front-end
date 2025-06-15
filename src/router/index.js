@@ -1,21 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// Pre-import components to avoid dynamic import issues
+import PlansView from '@/views/PlansView.vue'
+import PlanDetails from '@/views/PlanDetails.vue'
+import WorkoutsView from '@/views/WorkoutsView.vue'
+
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/PlansView.vue')
+    component: PlansView
   },
   {
     path: '/plans/:_id',
     name: 'PlanDetails',
-    component: () => import('@/views/PlanDetails.vue'),
+    component: PlanDetails,
     props: true
   },
   {
     path: '/workouts',
     name: 'Workouts',
-    component: () => import('@/views/WorkoutsView.vue')
+    component: WorkoutsView
   }
 ]
 

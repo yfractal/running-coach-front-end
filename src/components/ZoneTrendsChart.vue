@@ -1,8 +1,17 @@
 <template>
   <div class="w-full h-full">
     <h3 class="text-lg font-medium text-gray-900 mb-4">Weekly Zone Time Trends</h3>
-    <div class="relative w-full h-[calc(100%-2rem)]">
+    <div class="flex items-center justify-end gap-2 mb-2">
+      <button 
+        @click="resetZoom"
+        class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Reset Zoom
+      </button>
+    </div>
+    <div class="relative w-full h-[calc(100%-4rem)]">
       <Line
+        ref="chartRef"
         :data="chartData"
         :options="chartOptions"
       />
@@ -11,7 +20,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,6 +31,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js'
+import zoomPlugin from 'chartjs-plugin-zoom'
 import { Line } from 'vue-chartjs'
 
 ChartJS.register(
@@ -31,7 +41,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 )
 
 const props = defineProps({
@@ -41,7 +52,22 @@ const props = defineProps({
   }
 })
 
+const chartRef = ref(null)
+
+const resetZoom = () => {
+  if (chartRef.value) {
+    chartRef.value.chart.resetZoom()
+  }
+}
+
 const chartData = computed(() => {
+  if (!props.summary || Object.keys(props.summary).length === 0) {
+    return {
+      labels: [],
+      datasets: []
+    }
+  }
+
   const weeks = Object.entries(props.summary)
     .sort((a, b) => new Date(a[0]) - new Date(b[0]))
     
@@ -64,6 +90,26 @@ const chartData = computed(() => {
     tension: 0.4,
     fill: false
   }))
+
+  // Add intensive training dataset
+  const intensiveData = weeks.map(([, weekData]) => {
+    const zones = weekData.zone_durations_hours
+    return (zones['Zone 2'] || 0) + 
+           (zones['Zone 3'] || 0) + 
+           (zones['Zone 4'] || 0) + 
+           (zones['Zone 5'] || 0)
+  })
+
+  datasets.push({
+    label: 'Intensive Training (Z2-Z5)',
+    data: intensiveData,
+    borderColor: 'rgb(79, 70, 229)', // indigo-600
+    backgroundColor: 'rgb(79, 70, 229)',
+    borderWidth: 2,
+    borderDash: [5, 5],
+    tension: 0.4,
+    fill: false
+  })
 
   return {
     labels,
@@ -95,6 +141,26 @@ const chartOptions = {
           return `${context.dataset.label}: ${value}h`
         }
       }
+    },
+    zoom: {
+      pan: {
+        enabled: true,
+        mode: 'x',
+        modifierKey: 'ctrl',
+      },
+      zoom: {
+        wheel: {
+          enabled: true,
+          modifierKey: 'ctrl',
+        },
+        drag: {
+          enabled: true,
+          backgroundColor: 'rgba(79, 70, 229, 0.1)', // indigo-600 with opacity
+          borderColor: 'rgb(79, 70, 229)', // indigo-600
+          borderWidth: 1,
+        },
+        mode: 'x',
+      }
     }
   },
   scales: {
@@ -103,11 +169,18 @@ const chartOptions = {
       title: {
         display: true,
         text: 'Hours'
+      },
+      ticks: {
+        callback: (value) => `${value}h`
       }
     },
     x: {
       grid: {
         display: false
+      },
+      ticks: {
+        maxRotation: 45,
+        minRotation: 45
       }
     }
   }
