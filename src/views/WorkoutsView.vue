@@ -6,6 +6,23 @@ const workouts = ref([])
 const summary = ref({})
 const isLoading = ref(true)
 const error = ref(null)
+const expandedWeeks = ref({})
+
+// Format duration in hours and minutes
+const formatDuration = (durationInSeconds) => {
+  const hours = Math.floor(durationInSeconds / 3600)
+  const minutes = Math.round((durationInSeconds % 3600) / 60)
+  
+  if (hours === 0) {
+    return `${minutes}m`
+  }
+  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`
+}
+
+// Format zone duration in hours with one decimal
+const formatZoneDuration = (durationInSeconds) => {
+  return formatDuration(durationInSeconds)
+}
 
 // Fetch workouts data
 const fetchWorkouts = async () => {
@@ -22,6 +39,14 @@ const fetchWorkouts = async () => {
   }
 }
 
+// Toggle week expansion
+const toggleWeekExpanded = (weekStart) => {
+  expandedWeeks.value = {
+    ...expandedWeeks.value,
+    [weekStart]: !expandedWeeks.value[weekStart]
+  }
+}
+
 onMounted(fetchWorkouts)
 
 // Format date range for display
@@ -29,12 +54,7 @@ const formatWeekRange = (weekStart) => {
   const start = new Date(weekStart)
   const end = new Date(start)
   end.setDate(start.getDate() + 6)
-  
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-  
-  return `${formatDate(start)} - ${formatDate(end)}`
+  return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
 }
 </script>
 
@@ -66,76 +86,156 @@ const formatWeekRange = (weekStart) => {
       <div class="divide-y divide-gray-200">
         <div v-for="[weekStart, weekData] in Object.entries(summary).sort((a, b) => new Date(b[0]) - new Date(a[0]))" 
              :key="weekStart" 
-             class="bg-white px-6 py-4 grid grid-cols-12 gap-2 hover:bg-gray-50 transition-colors">
-          
-          <!-- Week Range -->
-          <div class="col-span-2 text-sm text-gray-900">
-            {{ formatWeekRange(weekStart) }}
-          </div>
+             class="bg-white hover:bg-gray-50 transition-colors">
+          <!-- Week Summary Row -->
+          <div class="px-6 py-4 grid grid-cols-12 gap-2 cursor-pointer"
+               @click="toggleWeekExpanded(weekStart)">
+            <!-- Week Range -->
+            <div class="col-span-2 text-sm text-gray-900 flex items-center">
+              <svg :class="{'rotate-90': expandedWeeks[weekStart]}" 
+                   class="h-5 w-5 text-gray-400 mr-2 transform transition-transform duration-200" 
+                   viewBox="0 0 20 20" 
+                   fill="currentColor">
+                <path fill-rule="evenodd" 
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" 
+                      clip-rule="evenodd" />
+              </svg>
+              {{ formatWeekRange(weekStart) }}
+            </div>
 
-          <!-- Total Duration -->
-          <div class="col-span-1 text-right text-sm text-gray-900">
-            {{ weekData.total_duration_hours }}h
-          </div>
+            <!-- Total Duration -->
+            <div class="col-span-1 text-right text-sm text-gray-900">
+              {{ formatDuration(weekData.total_duration_seconds) }}
+            </div>
 
-          <!-- Total Distance -->
-          <div class="col-span-1 text-right text-sm text-gray-900">
-            {{ weekData.running_distance_km > 0 ? `${weekData.running_distance_km}km` : '-' }}
-          </div>
+            <!-- Total Distance -->
+            <div class="col-span-1 text-right text-sm text-gray-900">
+              {{ weekData.running_distance_km > 0 ? `${weekData.running_distance_km}km` : '-' }}
+            </div>
 
-          <!-- Average Heart Rate -->
-          <div class="col-span-1 text-right text-sm text-gray-900">
-            {{ Math.round(weekData.avg_heart_rate) }} bpm
-          </div>
+            <!-- Average Heart Rate -->
+            <div class="col-span-1 text-right text-sm text-gray-900">
+              {{ Math.round(weekData.avg_heart_rate) }} bpm
+            </div>
 
-          <!-- Heart Rate Zones -->
-          <div class="col-span-4">
-            <div class="flex space-x-0.5 mb-1">
-              <div v-for="(hours, zone) in weekData.zone_durations_hours" 
-                   :key="zone"
-                   class="h-4 rounded-sm relative group flex items-center justify-center overflow-visible"
-                   :class="{
-                     'bg-blue-400': zone === 'Zone 1',
-                     'bg-teal-400': zone === 'Zone 2',
-                     'bg-green-400': zone === 'Zone 3',
-                     'bg-orange-400': zone === 'Zone 4',
-                     'bg-red-400': zone === 'Zone 5'
-                   }"
-                   :style="{ 
-                     width: `${(hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100)}%`,
-                     minWidth: hours > 0 ? '4px' : '0'
-                   }">
-                <!-- Tooltip on hover -->
-                <div class="invisible group-hover:visible absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
-                  {{ zone }}: {{ hours }}h
-                </div>
-                <!-- Zone text inside bar -->
-                <div class="text-xs text-white truncate px-1 pointer-events-none"
+            <!-- Heart Rate Zones -->
+            <div class="col-span-4">
+              <div class="flex space-x-0.5 mb-1">
+                <div v-for="(hours, zone) in weekData.zone_durations_hours" 
+                     :key="zone"
+                     class="h-4 rounded-sm relative group flex items-center justify-center overflow-visible"
                      :class="{
-                       'opacity-0': (hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100) < 15
+                       'bg-blue-400': zone === 'Zone 1',
+                       'bg-teal-400': zone === 'Zone 2',
+                       'bg-green-400': zone === 'Zone 3',
+                       'bg-orange-400': zone === 'Zone 4',
+                       'bg-red-400': zone === 'Zone 5'
+                     }"
+                     :style="{ 
+                       width: `${(hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100)}%`,
+                       minWidth: hours > 0 ? '4px' : '0'
                      }">
-                  {{ zone.replace('Zone ', 'Z') }} ({{ hours }}h)
+                  <!-- Tooltip on hover -->
+                  <div class="invisible group-hover:visible absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+                    {{ zone }}: {{ hours }}h
+                  </div>
+                  <!-- Zone text inside bar -->
+                  <div class="text-xs text-white truncate px-1 pointer-events-none"
+                       :class="{
+                         'opacity-0': (hours / Object.values(weekData.zone_durations_hours).reduce((a, b) => a + b, 0) * 100) < 15
+                       }">
+                    {{ zone.replace('Zone ', 'Z') }} ({{ hours }}h)
+                  </div>
                 </div>
               </div>
             </div>
+
+            <!-- Activity Types -->
+            <div class="col-span-3 flex flex-wrap gap-1">
+              <span v-for="type in weekData.activity_types" 
+                    :key="type"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-indigo-100 text-indigo-800': type === 'running',
+                      'bg-green-100 text-green-800': type === 'cycling',
+                      'bg-yellow-100 text-yellow-800': type === 'walking',
+                      'bg-purple-100 text-purple-800': type === 'high_intensity_interval_training',
+                      'bg-blue-100 text-blue-800': type === 'traditional_strength_training',
+                      'bg-pink-100 text-pink-800': type === 'functional_strength_training',
+                      'bg-gray-100 text-gray-800': !['running', 'cycling', 'walking', 'high_intensity_interval_training', 'traditional_strength_training', 'functional_strength_training'].includes(type)
+                    }">
+                {{ type.replace(/_/g, ' ') }}
+              </span>
+            </div>
           </div>
 
-          <!-- Activity Types -->
-          <div class="col-span-3 flex flex-wrap gap-1">
-            <span v-for="type in weekData.activity_types" 
-                  :key="type"
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-indigo-100 text-indigo-800': type === 'running',
-                    'bg-green-100 text-green-800': type === 'cycling',
-                    'bg-yellow-100 text-yellow-800': type === 'walking',
-                    'bg-purple-100 text-purple-800': type === 'high_intensity_interval_training',
-                    'bg-blue-100 text-blue-800': type === 'traditional_strength_training',
-                    'bg-pink-100 text-pink-800': type === 'functional_strength_training',
-                    'bg-gray-100 text-gray-800': !['running', 'cycling', 'walking', 'high_intensity_interval_training', 'traditional_strength_training', 'functional_strength_training'].includes(type)
-                  }">
-              {{ type.replace(/_/g, ' ') }}
-            </span>
+          <!-- Expanded Workout Details -->
+          <div v-if="expandedWeeks[weekStart]" class="px-6 py-4 bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th class="py-3 pr-4">Activity & Time</th>
+                  <th class="py-3 px-4">Duration</th>
+                  <th class="py-3 px-4">Distance</th>
+                  <th class="py-3 px-4">Heart Rate</th>
+                  <th class="py-3 px-4">Zones (hours)</th>
+                  <th class="py-3 px-4">Energy</th>
+                  <th class="py-3 pl-4">Weather</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="workout in weekData.weekly_workouts" 
+                    :key="workout._id"
+                    class="hover:bg-gray-50">
+                  <td class="py-4 pr-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ workout.activity_type.replace(/_/g, ' ') }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ new Date(workout.start_date).toLocaleString() }}
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-900">
+                    {{ formatDuration(workout.duration) }}
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-900">
+                    {{ workout.total_distance ? `${(workout.total_distance / 1000).toFixed(2)}km` : '-' }}
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-900">
+                    {{ Math.round(workout.average_heart_rate) }} bpm
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="text-sm text-gray-500 flex items-center space-x-3">
+                      <div v-for="zone in workout.heart_rate_zones.filter(z => z.duration > 0)" 
+                           :key="zone.name" 
+                           class="flex items-center">
+                        <span class="w-2 h-2 rounded-full mr-1"
+                              :class="{
+                                'bg-blue-400': zone.name === 'Zone 1',
+                                'bg-teal-400': zone.name === 'Zone 2',
+                                'bg-green-400': zone.name === 'Zone 3',
+                                'bg-orange-400': zone.name === 'Zone 4',
+                                'bg-red-400': zone.name === 'Zone 5'
+                              }"></span>
+                        <span class="text-gray-900">{{ formatZoneDuration(zone.duration) }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-900">
+                    {{ Math.round(workout.total_energy_burned) }} kcal
+                  </td>
+                  <td class="py-4 pl-4 text-sm text-gray-500">
+                    <template v-if="workout.metadata?.HKWeatherTemperature">
+                      {{ Math.round(parseFloat(workout.metadata.HKWeatherTemperature)) }}°F
+                      <span v-if="workout.metadata?.HKWeatherHumidity">
+                        / {{ Math.round(parseInt(workout.metadata.HKWeatherHumidity) / 100) }}%
+                      </span>
+                    </template>
+                    <template v-else>-</template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
