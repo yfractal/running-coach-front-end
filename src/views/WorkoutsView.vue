@@ -4,10 +4,12 @@ import axios from 'axios'
 import ZoneTrendsChart from '../components/ZoneTrendsChart.vue'
 import WorkoutTrendsChart from '../components/WorkoutTrendsChart.vue'
 import RunningDurationChart from '../components/RunningDurationChart.vue'
+import WorkoutDistributionChart from '../components/WorkoutDistributionChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
 const runningDurations = ref([])
+const workoutDistribution = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
@@ -49,6 +51,7 @@ const fetchWorkouts = async () => {
     workouts.value = response.data.workouts
     summary.value = response.data.summary
     runningDurations.value = response.data.running_durations || []
+    workoutDistribution.value = response.data.workout_distribution || []
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
@@ -97,6 +100,9 @@ const formatWeekRange = (weekStart) => {
         </div>
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
           <RunningDurationChart :running-durations="runningDurations" />
+        </div>
+        <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
+          <WorkoutDistributionChart :workout-distribution="workoutDistribution" />
         </div>
       </div>
 
