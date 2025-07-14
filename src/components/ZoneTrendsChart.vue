@@ -1,49 +1,17 @@
 <template>
-  <div class="w-full h-full">
-    <h3 class="text-lg font-medium text-gray-900 mb-4">Weekly Zone Time Trends</h3>
-    <div class="flex items-center justify-end gap-2 mb-2">
-      <button 
-        @click="resetZoom"
-        class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      >
-        Reset Zoom
-      </button>
-    </div>
-    <div class="relative w-full h-[calc(100%-4rem)]">
-      <Line
-        ref="chartRef"
-        :data="chartData"
-        :options="chartOptions"
-      />
-    </div>
-  </div>
+  <LineChart
+    name="Weekly Zone Time Trends"
+    :labels="chartLabels"
+    :datasets="chartDatasets"
+    y-axis-label="Hours"
+    :y-axis-formatter="(value) => `${value}h`"
+    :tooltip-formatter="(context) => `${context.dataset.label}: ${context.raw}h`"
+  />
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js'
-import zoomPlugin from 'chartjs-plugin-zoom'
-import { Line } from 'vue-chartjs'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  zoomPlugin
-)
+import { computed } from 'vue'
+import LineChart from './LineChart.vue'
 
 const props = defineProps({
   summary: {
@@ -52,29 +20,27 @@ const props = defineProps({
   }
 })
 
-const chartRef = ref(null)
-
-const resetZoom = () => {
-  if (chartRef.value) {
-    chartRef.value.chart.resetZoom()
-  }
-}
-
-const chartData = computed(() => {
+const chartLabels = computed(() => {
   if (!props.summary || Object.keys(props.summary).length === 0) {
-    return {
-      labels: [],
-      datasets: []
-    }
+    return []
   }
 
   const weeks = Object.entries(props.summary)
     .sort((a, b) => new Date(a[0]) - new Date(b[0]))
     
-  const labels = weeks.map(([weekStart]) => {
+  return weeks.map(([weekStart]) => {
     const date = new Date(weekStart)
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   })
+})
+
+const chartDatasets = computed(() => {
+  if (!props.summary || Object.keys(props.summary).length === 0) {
+    return []
+  }
+
+  const weeks = Object.entries(props.summary)
+    .sort((a, b) => new Date(a[0]) - new Date(b[0]))
 
   const datasets = [
     { label: 'Zone 1', color: 'rgb(96, 165, 250)' }, // blue-400
@@ -111,78 +77,6 @@ const chartData = computed(() => {
     fill: false
   })
 
-  return {
-    labels,
-    datasets
-  }
+  return datasets
 })
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  interaction: {
-    mode: 'index',
-    intersect: false,
-  },
-  plugins: {
-    legend: {
-      position: 'top',
-      align: 'start',
-      labels: {
-        usePointStyle: true,
-        boxWidth: 6,
-        padding: 20
-      }
-    },
-    tooltip: {
-      callbacks: {
-        label: (context) => {
-          const value = context.raw
-          return `${context.dataset.label}: ${value}h`
-        }
-      }
-    },
-    zoom: {
-      pan: {
-        enabled: true,
-        mode: 'x',
-        modifierKey: 'ctrl',
-      },
-      zoom: {
-        wheel: {
-          enabled: true,
-          modifierKey: 'ctrl',
-        },
-        drag: {
-          enabled: true,
-          backgroundColor: 'rgba(79, 70, 229, 0.1)', // indigo-600 with opacity
-          borderColor: 'rgb(79, 70, 229)', // indigo-600
-          borderWidth: 1,
-        },
-        mode: 'x',
-      }
-    }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      title: {
-        display: true,
-        text: 'Hours'
-      },
-      ticks: {
-        callback: (value) => `${value}h`
-      }
-    },
-    x: {
-      grid: {
-        display: false
-      },
-      ticks: {
-        maxRotation: 45,
-        minRotation: 45
-      }
-    }
-  }
-}
 </script> 
