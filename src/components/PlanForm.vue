@@ -9,11 +9,12 @@ const props = defineProps({
       status: 'active',
       description: '',
       quality: '',
-      unit: 'km',
+      unit: '',
       sub_quality: '',
-      sub_unit: 'km',
-      duration_type: 'week',
-      duration_value: 1
+      sub_unit: '',
+      duration_type: 'daily',
+      duration_value: 1,
+      start_date: new Date().toISOString().split('T')[0]
     })
   }
 })
@@ -27,29 +28,24 @@ const form = ref({
   quality: props.plan.quality,
   unit: props.plan.unit,
   sub_quality: props.plan.sub_quality || '',
-  sub_unit: props.plan.sub_unit || 'km',
+  sub_unit: props.plan.sub_unit || '',
   duration_type: props.plan.duration_type,
-  duration_value: props.plan.duration_value
+  duration_value: props.plan.duration_value,
+  start_date: props.plan.start_date
 })
 
-const unitOptions = [
-  { value: 'km', label: 'Kilometers (km)' },
-  { value: 'kg', label: 'Kilograms (kg)' },
-  { value: 'hour', label: 'Hours' },
-  { value: 'time', label: 'Times' }
-]
-
 const durationTypes = [
-  { value: 'day', label: 'Days' },
-  { value: 'week', label: 'Weeks' },
-  { value: 'month', label: 'Months' }
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' }
 ]
 
 const isValid = computed(() => {
   return form.value.name && 
          form.value.quality && 
          form.value.unit && 
-         form.value.duration_value > 0
+         form.value.duration_value > 0 &&
+         form.value.start_date
 })
 
 const handleSubmit = () => {
@@ -99,16 +95,27 @@ const handleSubmit = () => {
       </div>
       <div>
         <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
-        <select
+        <input
+          type="text"
           id="unit"
           v-model="form.unit"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-        >
-          <option v-for="option in unitOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+          placeholder="e.g., km, kg, times"
+          required
+        />
       </div>
+    </div>
+
+    <!-- Start Date -->
+    <div>
+      <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+      <input
+        type="date"
+        id="start_date"
+        v-model="form.start_date"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+        required
+      />
     </div>
 
     <!-- Sub Target (Optional) -->
@@ -127,16 +134,14 @@ const handleSubmit = () => {
         />
       </div>
       <div>
-        <label for="sub_unit" class="block text-sm font-medium text-gray-700">Sub-Unit</label>
-        <select
+        <label for="sub_unit" class="block text-sm font-medium text-gray-700">Sub-Unit (Optional)</label>
+        <input
+          type="text"
           id="sub_unit"
           v-model="form.sub_unit"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-        >
-          <option v-for="option in unitOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+          placeholder="e.g., km, kg, times"
+        />
       </div>
     </div>
 

@@ -28,7 +28,7 @@ const handleSubmit = () => {
 }
 
 const statusOptions = ['active', 'completed', 'cancelled']
-const durationTypes = ['dayly', 'weekly', 'monthly']
+const durationTypes = ['daily', 'weekly', 'monthly']
 </script>
 
 <template>
