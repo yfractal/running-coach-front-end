@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import ZoneTrendsChart from '../components/ZoneTrendsChart.vue'
 import WorkoutTrendsChart from '../components/WorkoutTrendsChart.vue'
+import RunningDurationChart from '../components/RunningDurationChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
+const runningDurations = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
@@ -46,6 +48,7 @@ const fetchWorkouts = async () => {
     const response = await axios.get('/api/workouts')
     workouts.value = response.data.workouts
     summary.value = response.data.summary
+    runningDurations.value = response.data.running_durations || []
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
@@ -88,12 +91,12 @@ const formatWeekRange = (weekStart) => {
     
     <div v-else>
       <!-- Charts Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
           <ZoneTrendsChart :summary="summary" />
         </div>
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
-          <WorkoutTrendsChart :summary="summary" />
+          <RunningDurationChart :running-durations="runningDurations" />
         </div>
       </div>
 
