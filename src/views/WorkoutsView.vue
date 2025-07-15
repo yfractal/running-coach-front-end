@@ -6,12 +6,14 @@ import WorkoutTrendsChart from '../components/WorkoutTrendsChart.vue'
 import RunningDurationChart from '../components/RunningDurationChart.vue'
 import WorkoutDistributionChart from '../components/WorkoutDistributionChart.vue'
 import MonthlyWorkoutChart from '../components/MonthlyWorkoutChart.vue'
+import RunningHeatmapChart from '../components/RunningHeatmapChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
 const runningDurations = ref([])
 const workoutDistribution = ref([])
 const currentMonthWorkouts = ref({})
+const yearlyRunningData = ref({})
 const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
@@ -55,6 +57,7 @@ const fetchWorkouts = async () => {
     runningDurations.value = response.data.running_durations || []
     workoutDistribution.value = response.data.workout_distribution || []
     currentMonthWorkouts.value = response.data.current_month_workouts || {}
+    yearlyRunningData.value = response.data.this_year_running_distance_per_data || {}
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
@@ -110,6 +113,11 @@ const formatWeekRange = (weekStart) => {
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
           <MonthlyWorkoutChart :current-month-workouts="currentMonthWorkouts" />
         </div>
+      </div>
+
+      <!-- Heatmap Chart -->
+      <div class="bg-white rounded-lg shadow p-4 mb-8" style="height: 300px;">
+        <RunningHeatmapChart :yearly-running-data="yearlyRunningData" />
       </div>
 
       <!-- Table Header -->
