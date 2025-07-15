@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full h-full">
+  <div class="w-full h-full flex flex-col">
     <h3 class="text-lg font-medium text-gray-900 mb-4">{{ name }}</h3>
-    <div class="relative w-full h-[calc(100%-2rem)] flex items-center justify-center">
+    <div class="relative flex-1 flex items-center justify-center" style="min-height: 250px;">
       <Doughnut
         :data="chartData"
         :options="chartOptions"
