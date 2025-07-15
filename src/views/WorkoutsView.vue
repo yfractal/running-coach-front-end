@@ -7,6 +7,7 @@ import RunningDurationChart from '../components/RunningDurationChart.vue'
 import WorkoutDistributionChart from '../components/WorkoutDistributionChart.vue'
 import MonthlyWorkoutChart from '../components/MonthlyWorkoutChart.vue'
 import RunningHeatmapChart from '../components/RunningHeatmapChart.vue'
+import RunningHeatmap3DChart from '../components/RunningHeatmap3DChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
@@ -115,9 +116,17 @@ const formatWeekRange = (weekStart) => {
         </div>
       </div>
 
-      <!-- Heatmap Chart -->
-      <div class="bg-white rounded-lg shadow p-4 mb-8" style="height: 300px;">
-        <RunningHeatmapChart :yearly-running-data="yearlyRunningData" />
+      <!-- Heatmap Charts -->
+      <div class="grid grid-cols-1 gap-6 mb-8">
+        <!-- 2D Heatmap -->
+        <div class="bg-white rounded-lg shadow p-4" style="height: 300px;">
+          <RunningHeatmapChart :yearly-running-data="yearlyRunningData" />
+        </div>
+        
+        <!-- 3D Heatmap -->
+        <div class="bg-white rounded-lg shadow p-1" style="height: 700px;">
+          <RunningHeatmap3DChart :yearly-running-data="yearlyRunningData" />
+        </div>
       </div>
 
       <!-- Table Header -->
