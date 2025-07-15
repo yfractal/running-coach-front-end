@@ -81,6 +81,18 @@ const props = defineProps({
   }
 })
 
+// Convert array of {date: meters} to map
+const runningDataMap = computed(() => {
+  if (!props.yearlyRunningData || !props.yearlyRunningData.values) return {}
+  const map = {}
+  props.yearlyRunningData.values.forEach(item => {
+    const date = Object.keys(item)[0]
+    const meters = Object.values(item)[0]
+    map[date] = { value: meters }
+  })
+  return map
+})
+
 // Template ref
 const heatmapContainer = ref(null)
 
@@ -118,7 +130,7 @@ const getIntensityLevel = (distance) => {
 // Get intensity class for styling
 const getIntensityClass = (day) => {
   if (!day || !day.date) return 'intensity-0'
-  const data = props.yearlyRunningData[day.date]
+  const data = runningDataMap.value[day.date]
   const level = data ? getIntensityLevel(data.value) : 0
   return `intensity-${level}`
 }
@@ -126,7 +138,7 @@ const getIntensityClass = (day) => {
 // Get tooltip text
 const getTooltipText = (day) => {
   if (!day || !day.date) return ''
-  const data = props.yearlyRunningData[day.date]
+  const data = runningDataMap.value[day.date]
   const dateStr = new Date(day.date).toLocaleDateString()
   if (data) {
     const km = metersToKm(data.value)
@@ -189,7 +201,7 @@ const calendarWeeks = computed(() => {
 
 // Calculate total distance
 const totalDistance = computed(() => {
-  const total = Object.values(props.yearlyRunningData).reduce((sum, data) => {
+  const total = Object.values(runningDataMap.value).reduce((sum, data) => {
     return sum + (data.value || 0)
   }, 0)
   return metersToKm(total)

@@ -59,6 +59,18 @@ const props = defineProps({
   }
 })
 
+// Convert array of {date: meters} to map
+const runningDataMap = computed(() => {
+  if (!props.yearlyRunningData || !props.yearlyRunningData.values) return {}
+  const map = {}
+  props.yearlyRunningData.values.forEach(item => {
+    const date = Object.keys(item)[0]
+    const meters = Object.values(item)[0]
+    map[date] = { value: meters }
+  })
+  return map
+})
+
 const canvas = ref(null)
 const isDragging = ref(false)
 let scene, camera, renderer, raycaster, mouse, controls
@@ -80,7 +92,7 @@ const metersToKm = (meters) => {
 
 // Calculate total distance
 const totalDistance = computed(() => {
-  const total = Object.values(props.yearlyRunningData).reduce((sum, data) => {
+  const total = Object.values(runningDataMap.value).reduce((sum, data) => {
     return sum + (data.value || 0)
   }, 0)
   return metersToKm(total)
@@ -115,7 +127,7 @@ const generateCalendarData = () => {
     const week = []
     for (let i = 0; i < 7; i++) {
       const dateStr = current.toISOString().split('T')[0]
-      const data = props.yearlyRunningData[dateStr]
+      const data = runningDataMap.value[dateStr]
       const intensityData = getIntensityData(data?.value || 0)
       
       week.push({
