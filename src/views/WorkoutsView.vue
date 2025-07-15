@@ -5,11 +5,13 @@ import ZoneTrendsChart from '../components/ZoneTrendsChart.vue'
 import WorkoutTrendsChart from '../components/WorkoutTrendsChart.vue'
 import RunningDurationChart from '../components/RunningDurationChart.vue'
 import WorkoutDistributionChart from '../components/WorkoutDistributionChart.vue'
+import MonthlyWorkoutChart from '../components/MonthlyWorkoutChart.vue'
 
 const workouts = ref([])
 const summary = ref({})
 const runningDurations = ref([])
 const workoutDistribution = ref([])
+const currentMonthWorkouts = ref({})
 const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
@@ -52,6 +54,7 @@ const fetchWorkouts = async () => {
     summary.value = response.data.summary
     runningDurations.value = response.data.running_durations || []
     workoutDistribution.value = response.data.workout_distribution || []
+    currentMonthWorkouts.value = response.data.current_month_workouts || {}
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
@@ -94,7 +97,7 @@ const formatWeekRange = (weekStart) => {
     
     <div v-else>
       <!-- Charts Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
           <ZoneTrendsChart :summary="summary" />
         </div>
@@ -103,6 +106,9 @@ const formatWeekRange = (weekStart) => {
         </div>
         <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
           <WorkoutDistributionChart :workout-distribution="workoutDistribution" />
+        </div>
+        <div class="bg-white rounded-lg shadow p-4" style="height: 400px;">
+          <MonthlyWorkoutChart :current-month-workouts="currentMonthWorkouts" />
         </div>
       </div>
 
