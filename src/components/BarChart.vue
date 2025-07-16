@@ -1,26 +1,14 @@
 <template>
-  <div class="w-full h-full">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-medium text-gray-900">{{ name }}</h3>
-      <button 
-        @click="resetZoom"
-        class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      >
-        Reset Zoom
-      </button>
-    </div>
-    <div class="relative w-full h-[calc(100%-4rem)]">
-      <Bar
-        ref="chartRef"
-        :data="chartData"
-        :options="chartOptions"
-      />
+  <div class="chart-container">
+    <h2>{{ name }}</h2>
+    <div class="chart-wrapper">
+      <Bar ref="chartRef" :data="chartData" :options="chartOptions" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -30,7 +18,6 @@ import {
   Tooltip,
   Legend
 } from 'chart.js'
-import zoomPlugin from 'chartjs-plugin-zoom'
 import { Bar } from 'vue-chartjs'
 
 ChartJS.register(
@@ -39,119 +26,87 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend,
-  zoomPlugin
+  Legend
 )
-
-const props = defineProps({
-  name: {
-    type: String,
-    required: true
-  },
-  labels: {
-    type: Array,
-    required: true
-  },
-  datasets: {
-    type: Array,
-    required: true
-  },
-  yAxisLabel: {
-    type: String,
-    default: 'Value'
-  },
-  yAxisFormatter: {
-    type: Function,
-    default: (value) => value
-  },
-  tooltipFormatter: {
-    type: Function,
-    default: (context) => `${context.dataset.label}: ${context.raw}`
-  },
-  stacked: {
-    type: Boolean,
-    default: false
-  }
-})
 
 const chartRef = ref(null)
 
-const resetZoom = () => {
-  if (chartRef.value) {
-    chartRef.value.chart.resetZoom()
-  }
+const chartData = {
+  labels: ['HIIT', 'Running', 'Cooldown', 'Cycling', 'Strength'],
+  datasets: [
+    {
+      label: 'Duration (minutes)',
+      data: [
+        (83592.40 / 60).toFixed(2),  // HIIT
+        (32304.66 / 60).toFixed(2),  // Running
+        (5416.09 / 60).toFixed(2),   // Cooldown
+        (2939.51 / 60).toFixed(2),   // Cycling
+        (1001.27 / 60).toFixed(2)    // Strength
+      ],
+      backgroundColor: [
+        '#f97316', // HIIT
+        '#3b82f6', // Running
+        '#10b981', // Cooldown
+        '#facc15', // Cycling
+        '#a855f7'  // Strength
+      ],
+      borderRadius: 6,
+      barThickness: 50
+    }
+  ]
 }
 
-const chartData = computed(() => ({
-  labels: props.labels,
-  datasets: props.datasets
-}))
-
 const chartOptions = {
+  maintainAspectRatio: false,
   responsive: true,
-  maintainAspectRatio: true,
-  interaction: {
-    mode: 'index',
-    intersect: false,
-  },
   plugins: {
-    legend: {
-      position: 'top',
-      align: 'start',
-      labels: {
-        usePointStyle: true,
-        boxWidth: 6,
-        padding: 20
-      }
-    },
-    tooltip: {
-      callbacks: {
-        label: props.tooltipFormatter
-      }
-    },
-    zoom: {
-      pan: {
-        enabled: true,
-        mode: 'x',
-        modifierKey: 'ctrl',
-      },
-      zoom: {
-        wheel: {
-          enabled: true,
-          modifierKey: 'ctrl',
-        },
-        drag: {
-          enabled: true,
-          backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          borderColor: 'rgb(79, 70, 229)',
-          borderWidth: 1,
-        },
-        mode: 'x',
-      }
+    legend: { display: false },
+    title: {
+      display: true,
+      text: 'Workout Duration by Activity (in minutes)'
     }
   },
   scales: {
     y: {
       beginAtZero: true,
-      stacked: props.stacked,
       title: {
         display: true,
-        text: props.yAxisLabel
-      },
-      ticks: {
-        callback: props.yAxisFormatter
+        text: 'Minutes'
       }
     },
     x: {
-      stacked: props.stacked,
-      grid: {
-        display: false
-      },
-      ticks: {
-        maxRotation: 45,
-        minRotation: 45
+      title: {
+        display: true,
+        text: 'Activity Type'
       }
     }
   }
 }
-</script> 
+</script>
+
+<style scoped>
+.chart-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+.chart-wrapper {
+  position: relative;
+  height: 400px;
+}
+body {
+  font-family: sans-serif;
+  background: #f9fafb;
+  padding: 2rem;
+}
+</style> 

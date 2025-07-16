@@ -1,25 +1,36 @@
 <template>
-  <div class="w-full space-y-6">
+  <div class="w-full space-y-8">
     <!-- Regular charts in grid -->
-    <div class="w-full grid gap-6" :class="gridClass" v-if="nonHeatmapCharts.length > 0">
+    <div class="w-full grid gap-8" :class="gridClass" v-if="nonHeatmapCharts.length > 0">
       <template v-for="(chart, idx) in nonHeatmapCharts" :key="idx">
-        <component
-          :is="getChartComponent(chart.chart_type)"
-          v-bind="getChartProps(chart)"
-          class="bg-white rounded-lg shadow p-4"
-          style="min-height: 400px;"
-        />
+        <div class="bg-gray-50 rounded-2xl shadow-lg p-8 flex flex-col h-full hover:shadow-xl transition-shadow duration-200">
+          <div class="flex items-center mb-6">
+            <div class="w-1.5 h-7 rounded bg-blue-500 mr-3"></div>
+            <h3 class="text-xl font-bold text-gray-900 tracking-tight">{{ chart.name }}</h3>
+          </div>
+          <component
+            :is="getChartComponent(chart.chart_type)"
+            v-bind="getChartProps(chart)"
+            class="flex-1"
+          />
+        </div>
       </template>
     </div>
     
     <!-- Heatmap charts full width -->
     <template v-for="(chart, idx) in heatmapCharts" :key="`heatmap-${idx}`">
-      <component
-        :is="getChartComponent(chart.chart_type)"
-        v-bind="getChartProps(chart)"
-        class="bg-white rounded-lg shadow p-4 w-full"
-        :style="chart.chart_type === '3d_heatmap' ? 'min-height: 700px;' : 'min-height: 300px;'"
-      />
+      <div class="bg-gray-50 rounded-2xl shadow-lg p-8 w-full hover:shadow-xl transition-shadow duration-200">
+        <div class="flex items-center mb-6">
+          <div class="w-1.5 h-7 rounded bg-green-500 mr-3"></div>
+          <h3 class="text-xl font-bold text-gray-900 tracking-tight">{{ chart.name }}</h3>
+        </div>
+        <component
+          :is="getChartComponent(chart.chart_type)"
+          v-bind="getChartProps(chart)"
+          class="w-full"
+          :style="chart.chart_type === '3d_heatmap' ? 'min-height: 700px;' : 'min-height: 300px;'"
+        />
+      </div>
     </template>
   </div>
 </template>
