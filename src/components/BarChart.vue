@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,32 +29,47 @@ ChartJS.register(
   Legend
 )
 
+const props = defineProps({
+  name: {
+    type: String,
+    default: '⏱ Workout Duration by Activity'
+  },
+  labels: {
+    type: Array,
+    default: () => ['HIIT', 'Running', 'Cooldown', 'Cycling', 'Strength']
+  },
+  datasets: {
+    type: Array,
+    default: () => [
+      {
+        label: 'Duration (minutes)',
+        data: [
+          (83592.40 / 60).toFixed(2),  // HIIT
+          (32304.66 / 60).toFixed(2),  // Running
+          (5416.09 / 60).toFixed(2),   // Cooldown
+          (2939.51 / 60).toFixed(2),   // Cycling
+          (1001.27 / 60).toFixed(2)    // Strength
+        ],
+        backgroundColor: [
+          '#f97316', // HIIT
+          '#3b82f6', // Running
+          '#10b981', // Cooldown
+          '#facc15', // Cycling
+          '#a855f7'  // Strength
+        ],
+        borderRadius: 6,
+        barThickness: 50
+      }
+    ]
+  }
+})
+
 const chartRef = ref(null)
 
-const chartData = {
-  labels: ['HIIT', 'Running', 'Cooldown', 'Cycling', 'Strength'],
-  datasets: [
-    {
-      label: 'Duration (minutes)',
-      data: [
-        (83592.40 / 60).toFixed(2),  // HIIT
-        (32304.66 / 60).toFixed(2),  // Running
-        (5416.09 / 60).toFixed(2),   // Cooldown
-        (2939.51 / 60).toFixed(2),   // Cycling
-        (1001.27 / 60).toFixed(2)    // Strength
-      ],
-      backgroundColor: [
-        '#f97316', // HIIT
-        '#3b82f6', // Running
-        '#10b981', // Cooldown
-        '#facc15', // Cycling
-        '#a855f7'  // Strength
-      ],
-      borderRadius: 6,
-      barThickness: 50
-    }
-  ]
-}
+const chartData = computed(() => ({
+  labels: props.labels,
+  datasets: props.datasets
+}))
 
 const chartOptions = {
   maintainAspectRatio: false,
