@@ -138,17 +138,19 @@ function transformBarChart(chart) {
     data.push(getFormattedValue(value, chart.unit, chart.chart_type))
   })
   
-  const colorMap = {
-    'running': 'rgb(59, 130, 246)',
-    'cycling': 'rgb(16, 185, 129)',
-    'high_intensity_interval_training': 'rgb(239, 68, 68)',
-    'traditional_strength_training': 'rgb(245, 158, 11)',
-    'functional_strength_training': 'rgb(139, 92, 246)',
-    'cooldown': 'rgb(14, 165, 233)',
-    'walking': 'rgb(34, 197, 94)',
-    'yoga': 'rgb(236, 72, 153)',
-    'swimming': 'rgb(251, 146, 60)'
-  }
+  // Use a color palette for week-based data instead of activity type mapping
+  const colorPalette = [
+    'rgb(59, 130, 246)',   // blue
+    'rgb(16, 185, 129)',   // green
+    'rgb(245, 158, 11)',   // amber
+    'rgb(239, 68, 68)',    // red
+    'rgb(139, 92, 246)',   // violet
+    'rgb(236, 72, 153)',   // pink
+    'rgb(14, 165, 233)',   // sky
+    'rgb(34, 197, 94)',    // emerald
+    'rgb(251, 146, 60)',   // orange
+    'rgb(168, 85, 247)'    // purple
+  ]
   
   return {
     name: chart.name,
@@ -156,9 +158,7 @@ function transformBarChart(chart) {
     datasets: [{
       label: getDatasetLabel(chart.unit),
       data,
-      backgroundColor: labels.map(label => 
-        colorMap[label.toLowerCase().replace(/\s+/g, '_')] || 'rgb(107, 114, 128)'
-      )
+      backgroundColor: labels.map((_, i) => colorPalette[i % colorPalette.length])
     }]
   }
 }

@@ -29,47 +29,53 @@ ChartJS.register(
   Legend
 )
 
+const defaultPalette = [
+  '#f97316', // orange
+  '#3b82f6', // blue
+  '#10b981', // green
+  '#facc15', // yellow
+  '#a855f7', // purple
+  '#ef4444', // red
+  '#14b8a6', // teal
+  '#6366f1', // indigo
+  '#eab308', // amber
+  '#22d3ee'  // cyan
+]
+
 const props = defineProps({
   name: {
     type: String,
-    default: '⏱ Workout Duration by Activity'
+    default: '⏱ Workout Duration by Week'
   },
   labels: {
     type: Array,
-    default: () => ['HIIT', 'Running', 'Cooldown', 'Cycling', 'Strength']
+    default: () => []
   },
   datasets: {
     type: Array,
-    default: () => [
-      {
-        label: 'Duration (minutes)',
-        data: [
-          (83592.40 / 60).toFixed(2),  // HIIT
-          (32304.66 / 60).toFixed(2),  // Running
-          (5416.09 / 60).toFixed(2),   // Cooldown
-          (2939.51 / 60).toFixed(2),   // Cycling
-          (1001.27 / 60).toFixed(2)    // Strength
-        ],
-        backgroundColor: [
-          '#f97316', // HIIT
-          '#3b82f6', // Running
-          '#10b981', // Cooldown
-          '#facc15', // Cycling
-          '#a855f7'  // Strength
-        ],
-        borderRadius: 6,
-        barThickness: 50
-      }
-    ]
+    default: () => []
   }
 })
 
 const chartRef = ref(null)
 
-const chartData = computed(() => ({
-  labels: props.labels,
-  datasets: props.datasets
-}))
+const chartData = computed(() => {
+  // If the dataset does not provide backgroundColor, assign a palette
+  if (props.datasets.length > 0) {
+    const ds = { ...props.datasets[0] }
+    if (!ds.backgroundColor) {
+      ds.backgroundColor = props.labels.map((_, i) => defaultPalette[i % defaultPalette.length])
+    }
+    return {
+      labels: props.labels,
+      datasets: [ds]
+    }
+  }
+  return {
+    labels: [],
+    datasets: []
+  }
+})
 
 const chartOptions = {
   maintainAspectRatio: false,
@@ -78,7 +84,7 @@ const chartOptions = {
     legend: { display: false },
     title: {
       display: true,
-      text: 'Workout Duration by Activity (in minutes)'
+      text: props.name
     }
   },
   scales: {
@@ -92,7 +98,7 @@ const chartOptions = {
     x: {
       title: {
         display: true,
-        text: 'Activity Type'
+        text: 'Week'
       }
     }
   }
