@@ -54,6 +54,10 @@ const props = defineProps({
   datasets: {
     type: Array,
     default: () => []
+  },
+  stacked: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -62,13 +66,16 @@ const chartRef = ref(null)
 const chartData = computed(() => {
   // If the dataset does not provide backgroundColor, assign a palette
   if (props.datasets.length > 0) {
-    const ds = { ...props.datasets[0] }
-    if (!ds.backgroundColor) {
-      ds.backgroundColor = props.labels.map((_, i) => defaultPalette[i % defaultPalette.length])
-    }
+    const datasets = props.datasets.map(ds => {
+      const newDs = { ...ds }
+      if (!newDs.backgroundColor) {
+        newDs.backgroundColor = props.labels.map((_, i) => defaultPalette[i % defaultPalette.length])
+      }
+      return newDs
+    })
     return {
       labels: props.labels,
-      datasets: [ds]
+      datasets
     }
   }
   return {
@@ -77,11 +84,20 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = {
+const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   responsive: true,
   plugins: {
-    legend: { display: false },
+    legend: { 
+      display: props.stacked, // Show legend for stacked charts
+      position: 'top',
+      align: 'start',
+      labels: {
+        usePointStyle: true,
+        boxWidth: 6,
+        padding: 20
+      }
+    },
     title: {
       display: true,
       text: props.name
@@ -90,19 +106,21 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: true,
+      stacked: props.stacked,
       title: {
         display: true,
         text: 'Minutes'
       }
     },
     x: {
+      stacked: props.stacked,
       title: {
         display: true,
-        text: 'Week'
+        text: props.stacked ? 'Week' : 'Week'
       }
     }
   }
-}
+}))
 </script>
 
 <style scoped>

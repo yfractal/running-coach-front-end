@@ -74,6 +74,8 @@ function getChartComponent(type) {
       return LineChart
     case 'bar':
       return BarChart
+    case 'stacked_bar':
+      return BarChart
     case 'pie':
       return PieChart
     case 'heatmap':
@@ -92,6 +94,8 @@ function getChartProps(chart) {
       return transformLineChart(chart)
     case 'bar':
       return transformBarChart(chart)
+    case 'stacked_bar':
+      return transformStackedBarChart(chart)
     case 'pie':
       return transformPieChart(chart)
     case 'heatmap':
@@ -160,6 +164,44 @@ function transformBarChart(chart) {
       data,
       backgroundColor: labels.map((_, i) => colorPalette[i % colorPalette.length])
     }]
+  }
+}
+
+function transformStackedBarChart(chart) {
+  // Extract all unique activity types from the data
+  const activityTypes = new Set()
+  chart.values.forEach(([week, activities]) => {
+    Object.keys(activities).forEach(activity => {
+      activityTypes.add(activity)
+    })
+  })
+  
+  // Sort activity types for consistent ordering
+  const sortedActivityTypes = Array.from(activityTypes).sort()
+  
+  // Create labels (week numbers)
+  const labels = chart.values.map(([week]) => `Week ${week}`)
+  
+  // Create datasets for each activity type
+  const datasets = sortedActivityTypes.map(activityType => {
+    const data = chart.values.map(([week, activities]) => {
+      const value = activities[activityType] || 0
+      return getFormattedValue(value, chart.unit, 'stacked_bar')
+    })
+    
+    return {
+      label: getFormattedLabel(activityType, 'stacked_bar'),
+      data,
+      backgroundColor: getActivityTypeColor(activityType),
+      stack: 'Stack 0'
+    }
+  })
+  
+  return {
+    name: chart.name,
+    labels,
+    datasets,
+    stacked: true
   }
 }
 
@@ -251,5 +293,22 @@ function getDatasetLabel(unit) {
     default:
       return 'Value'
   }
+}
+
+function getActivityTypeColor(activityType) {
+  const colorMap = {
+    'running': 'rgb(59, 130, 246)', // blue
+    'cycling': 'rgb(16, 185, 129)', // green
+    'high_intensity_interval_training': 'rgb(239, 68, 68)', // red
+    'traditional_strength_training': 'rgb(245, 158, 11)', // amber
+    'functional_strength_training': 'rgb(139, 92, 246)', // violet
+    'cooldown': 'rgb(14, 165, 233)', // sky
+    'walking': 'rgb(34, 197, 94)', // emerald
+    'yoga': 'rgb(236, 72, 153)', // pink
+    'swimming': 'rgb(251, 146, 60)', // orange
+    'other': 'rgb(168, 85, 247)' // purple
+  }
+  
+  return colorMap[activityType] || 'rgb(107, 114, 128)' // gray fallback
 }
 </script> 
