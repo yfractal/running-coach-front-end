@@ -1,37 +1,25 @@
 <template>
   <div class="w-full space-y-8">
-    <!-- Regular charts in grid -->
-    <div class="w-full grid gap-8" :class="gridClass" v-if="nonHeatmapCharts.length > 0">
-      <template v-for="(chart, idx) in nonHeatmapCharts" :key="idx">
+    <!-- All charts in single column grid -->
+    <div class="w-full grid gap-8 grid-cols-1" v-if="charts.length > 0">
+      <template v-for="(chart, idx) in charts" :key="idx">
         <div class="bg-gray-50 rounded-2xl shadow-lg p-8 flex flex-col h-full hover:shadow-xl transition-shadow duration-200">
           <div class="flex items-center mb-6">
-            <div class="w-1.5 h-7 rounded bg-blue-500 mr-3"></div>
+            <div class="w-1.5 h-7 rounded mr-3" :class="{
+              'bg-blue-500': chart.chart_type !== 'heatmap' && chart.chart_type !== '3d_heatmap',
+              'bg-green-500': chart.chart_type === 'heatmap' || chart.chart_type === '3d_heatmap'
+            }"></div>
             <h3 class="text-xl font-bold text-gray-900 tracking-tight">{{ chart.name }}</h3>
           </div>
           <component
             :is="getChartComponent(chart.chart_type)"
             v-bind="getChartProps(chart)"
             class="flex-1"
+            :style="chart.chart_type === '3d_heatmap' ? 'min-height: 700px;' : 'min-height: 300px;'"
           />
         </div>
       </template>
     </div>
-    
-    <!-- Heatmap charts full width -->
-    <template v-for="(chart, idx) in heatmapCharts" :key="`heatmap-${idx}`">
-      <div class="bg-gray-50 rounded-2xl shadow-lg p-8 w-full hover:shadow-xl transition-shadow duration-200">
-        <div class="flex items-center mb-6">
-          <div class="w-1.5 h-7 rounded bg-green-500 mr-3"></div>
-          <h3 class="text-xl font-bold text-gray-900 tracking-tight">{{ chart.name }}</h3>
-        </div>
-        <component
-          :is="getChartComponent(chart.chart_type)"
-          v-bind="getChartProps(chart)"
-          class="w-full"
-          :style="chart.chart_type === '3d_heatmap' ? 'min-height: 700px;' : 'min-height: 300px;'"
-        />
-      </div>
-    </template>
   </div>
 </template>
 
@@ -50,23 +38,11 @@ const props = defineProps({
   },
   columns: {
     type: Number,
-    default: 2
+    default: 1
   }
 })
 
-const gridClass = computed(() => `grid-cols-1 lg:grid-cols-${props.columns}`)
-
-const nonHeatmapCharts = computed(() => {
-  return props.charts.filter(chart => 
-    chart.chart_type !== 'heatmap' && chart.chart_type !== '3d_heatmap'
-  )
-})
-
-const heatmapCharts = computed(() => {
-  return props.charts.filter(chart => 
-    chart.chart_type === 'heatmap' || chart.chart_type === '3d_heatmap'
-  )
-})
+// Remove gridClass, nonHeatmapCharts, and heatmapCharts computed properties since we're using single column layout
 
 function getChartComponent(type) {
   switch (type) {
