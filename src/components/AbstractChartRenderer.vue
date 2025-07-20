@@ -87,12 +87,22 @@ function transformLineChart(chart) {
   const labels = []
   const data = []
   
-  chart.values.forEach(item => {
-    const key = Object.keys(item)[0]
-    const value = Object.values(item)[0]
-    labels.push(getFormattedLabel(key, chart.chart_type))
-    data.push(getFormattedValue(value, chart.unit, chart.chart_type))
-  })
+  // Handle both array format (old) and object format (new)
+  if (Array.isArray(chart.values)) {
+    // Old format: array of objects
+    chart.values.forEach(item => {
+      const key = Object.keys(item)[0]
+      const value = Object.values(item)[0]
+      labels.push(getFormattedLabel(key, chart.chart_type))
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+    })
+  } else {
+    // New format: object with key-value pairs
+    Object.entries(chart.values).forEach(([key, value]) => {
+      labels.push(getFormattedLabel(key, chart.chart_type))
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+    })
+  }
   
   return {
     name: chart.name,
@@ -111,12 +121,22 @@ function transformBarChart(chart) {
   const labels = []
   const data = []
   
-  chart.values.forEach(item => {
-    const key = Object.keys(item)[0]
-    const value = Object.values(item)[0]
-    labels.push(getFormattedLabel(key, chart.chart_type))
-    data.push(getFormattedValue(value, chart.unit, chart.chart_type))
-  })
+  // Handle both array format and object format
+  if (Array.isArray(chart.values)) {
+    // Original format: array of objects
+    chart.values.forEach(item => {
+      const key = Object.keys(item)[0]
+      const value = Object.values(item)[0]
+      labels.push(getFormattedLabel(key, chart.chart_type))
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+    })
+  } else {
+    // New format: object with key-value pairs
+    Object.entries(chart.values).forEach(([key, value]) => {
+      labels.push(getFormattedLabel(key, chart.chart_type))
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+    })
+  }
   
   // Use a color palette for week-based data instead of activity type mapping
   const colorPalette = [
@@ -144,26 +164,60 @@ function transformBarChart(chart) {
 }
 
 function transformStackedBarChart(chart) {
-  // Extract all unique activity types from the data
+  // Extract all unique activity types and weeks from the data
   const activityTypes = new Set()
-  chart.values.forEach(([week, activities]) => {
-    Object.keys(activities).forEach(activity => {
-      activityTypes.add(activity)
+  const weeks = new Set()
+  
+  // Handle both array format and object format
+  if (Array.isArray(chart.values)) {
+    // Original format: array of [week, activities] pairs
+    chart.values.forEach(([week, activities]) => {
+      weeks.add(week)
+      Object.keys(activities).forEach(activity => {
+        activityTypes.add(activity)
+      })
     })
-  })
+  } else {
+    // New format: object with activity type keys, each containing week-value pairs
+    Object.keys(chart.values).forEach(activityType => {
+      activityTypes.add(activityType)
+      Object.keys(chart.values[activityType]).forEach(week => {
+        weeks.add(week)
+      })
+    })
+  }
   
   // Sort activity types for consistent ordering
   const sortedActivityTypes = Array.from(activityTypes).sort()
+  const sortedWeeks = Array.from(weeks).sort()
   
-  // Create labels (week numbers)
-  const labels = chart.values.map(([week]) => `Week ${week}`)
+  // Create labels (formatted week dates)
+  const labels = sortedWeeks.map(week => {
+    // Format week dates (e.g., "2025-06-30" -> "Jun 30")
+    if (/^\d{4}-\d{2}-\d{2}$/.test(week)) {
+      const date = new Date(week)
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }
+    return `Week ${week}`
+  })
   
   // Create datasets for each activity type
   const datasets = sortedActivityTypes.map(activityType => {
-    const data = chart.values.map(([week, activities]) => {
-      const value = activities[activityType] || 0
-      return getFormattedValue(value, chart.unit, 'stacked_bar')
-    })
+    let data
+    if (Array.isArray(chart.values)) {
+      // Original format
+      data = sortedWeeks.map(week => {
+        const weekData = chart.values.find(([w]) => w === week)
+        const value = weekData ? (weekData[1][activityType] || 0) : 0
+        return getFormattedValue(value, chart.unit, 'stacked_bar')
+      })
+    } else {
+      // New format: chart.values[activityType] contains week-value pairs
+      data = sortedWeeks.map(week => {
+        const value = chart.values[activityType] ? (chart.values[activityType][week] || 0) : 0
+        return getFormattedValue(value, chart.unit, 'stacked_bar')
+      })
+    }
     
     return {
       label: getFormattedLabel(activityType, 'stacked_bar'),
@@ -198,15 +252,27 @@ function transformPieChart(chart) {
     'swimming': 'rgb(251, 146, 60)'
   }
   
-  chart.values.forEach(item => {
-    const key = Object.keys(item)[0]
-    const value = Object.values(item)[0]
-    
-    const formattedLabel = getFormattedLabel(key, chart.chart_type)
-    labels.push(formattedLabel)
-    data.push(getFormattedValue(value, chart.unit, chart.chart_type))
-    colors.push(colorMap[key] || 'rgb(107, 114, 128)')
-  })
+  // Handle both array format and object format
+  if (Array.isArray(chart.values)) {
+    // Original format: array of objects
+    chart.values.forEach(item => {
+      const key = Object.keys(item)[0]
+      const value = Object.values(item)[0]
+      
+      const formattedLabel = getFormattedLabel(key, chart.chart_type)
+      labels.push(formattedLabel)
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+      colors.push(colorMap[key] || 'rgb(107, 114, 128)')
+    })
+  } else {
+    // New format: object with key-value pairs
+    Object.entries(chart.values).forEach(([key, value]) => {
+      const formattedLabel = getFormattedLabel(key, chart.chart_type)
+      labels.push(formattedLabel)
+      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+      colors.push(colorMap[key] || 'rgb(107, 114, 128)')
+    })
+  }
   
   return {
     name: chart.name,
@@ -217,11 +283,15 @@ function transformPieChart(chart) {
 }
 
 function transformHeatmapChart(chart) {
-  // The API already provides the correct format - pass it through directly
+  // New format only: object with date-value pairs
+  const values = Object.entries(chart.values).map(([date, value]) => ({
+    [date]: value
+  }))
+  
   return {
     name: chart.name,
     yearlyRunningData: {
-      values: chart.values // This is already an array of {date: value} objects
+      values
     }
   }
 }

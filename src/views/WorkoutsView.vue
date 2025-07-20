@@ -45,7 +45,7 @@ const fetchWorkouts = async () => {
     isLoading.value = true
     const response = await axios.get('/api/workouts')
     
-    // Use the charts directly from the API response
+    // Handle the new API format where charts is already an array
     charts.value = response.data.charts || []
     
     // Keep the existing data for the table view (if available)

@@ -59,11 +59,12 @@ const props = defineProps({
   }
 })
 
-// Convert array of {date: meters} to map
+// Convert array of {date: meters} to map  
 const runningDataMap = computed(() => {
   if (!props.yearlyRunningData || !props.yearlyRunningData.values) return {}
   const map = {}
   props.yearlyRunningData.values.forEach(item => {
+    // New format only: {"2024-07-27": 1425.19429267745}
     const date = Object.keys(item)[0]
     const meters = Object.values(item)[0]
     map[date] = { value: meters }
