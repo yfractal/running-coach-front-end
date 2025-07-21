@@ -343,6 +343,7 @@ function getDatasetLabel(unit) {
 
 function getActivityTypeColor(activityType) {
   const colorMap = {
+    // Activity types
     'running': 'rgb(59, 130, 246)', // blue
     'cycling': 'rgb(16, 185, 129)', // green
     'high_intensity_interval_training': 'rgb(239, 68, 68)', // red
@@ -352,7 +353,14 @@ function getActivityTypeColor(activityType) {
     'walking': 'rgb(34, 197, 94)', // emerald
     'yoga': 'rgb(236, 72, 153)', // pink
     'swimming': 'rgb(251, 146, 60)', // orange
-    'other': 'rgb(168, 85, 247)' // purple
+    'other': 'rgb(168, 85, 247)', // purple
+    
+    // Heart rate zones
+    'Zone 1': 'rgb(96, 165, 250)', // blue-400
+    'Zone 2': 'rgb(45, 212, 191)', // teal-400
+    'Zone 3': 'rgb(74, 222, 128)', // green-400
+    'Zone 4': 'rgb(251, 146, 60)', // orange-400
+    'Zone 5': 'rgb(248, 113, 113)' // red-400
   }
   
   return colorMap[activityType] || 'rgb(107, 114, 128)' // gray fallback
