@@ -130,7 +130,7 @@ const chartOptions = {
   },
   scales: {
     y: {
-      beginAtZero: true,
+      beginAtZero: false,
       title: {
         display: true,
         text: props.yAxisLabel

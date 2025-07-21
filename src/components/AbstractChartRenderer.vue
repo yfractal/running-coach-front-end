@@ -85,35 +85,97 @@ function getChartProps(chart) {
 
 function transformLineChart(chart) {
   const labels = []
-  const data = []
+  const datasets = []
   
-  // Handle both array format (old) and object format (new)
+  // Handle different data formats
   if (Array.isArray(chart.values)) {
     // Old format: array of objects
+    const data = []
     chart.values.forEach(item => {
       const key = Object.keys(item)[0]
       const value = Object.values(item)[0]
       labels.push(getFormattedLabel(key, chart.chart_type))
       data.push(getFormattedValue(value, chart.unit, chart.chart_type))
     })
-  } else {
-    // New format: object with key-value pairs
-    Object.entries(chart.values).forEach(([key, value]) => {
-      labels.push(getFormattedLabel(key, chart.chart_type))
-      data.push(getFormattedValue(value, chart.unit, chart.chart_type))
-    })
-  }
-  
-  return {
-    name: chart.name,
-    labels,
-    datasets: [{
+    
+    datasets.push({
       label: getDatasetLabel(chart.unit),
       data,
       borderColor: 'rgb(59, 130, 246)',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       tension: 0.4
-    }]
+    })
+  } else {
+    // Check if this is a nested structure with activity types
+    const firstKey = Object.keys(chart.values)[0]
+    const firstValue = chart.values[firstKey]
+    
+    if (typeof firstValue === 'object' && firstValue !== null && !Array.isArray(firstValue)) {
+      // Nested format: { activityType: { date: value, ... } }
+      const activityTypes = Object.keys(chart.values)
+      const allDates = new Set()
+      
+      // Collect all unique dates
+      activityTypes.forEach(activityType => {
+        Object.keys(chart.values[activityType]).forEach(date => {
+          allDates.add(date)
+        })
+      })
+      
+      // Sort dates
+      const sortedDates = Array.from(allDates).sort()
+      labels.push(...sortedDates.map(date => getFormattedLabel(date, chart.chart_type)))
+      
+      // Create dataset for each activity type
+      activityTypes.forEach((activityType, index) => {
+        const data = sortedDates.map(date => {
+          const value = chart.values[activityType][date] || 0
+          return getFormattedValue(value, chart.unit, chart.chart_type)
+        })
+        
+        const colorPalette = [
+          'rgb(59, 130, 246)',   // blue
+          'rgb(16, 185, 129)',   // green
+          'rgb(245, 158, 11)',   // amber
+          'rgb(239, 68, 68)',    // red
+          'rgb(139, 92, 246)',   // violet
+          'rgb(236, 72, 153)',   // pink
+          'rgb(14, 165, 233)',   // sky
+          'rgb(34, 197, 94)',    // emerald
+          'rgb(251, 146, 60)',   // orange
+          'rgb(168, 85, 247)'    // purple
+        ]
+        
+        datasets.push({
+          label: getFormattedLabel(activityType, chart.chart_type),
+          data,
+          borderColor: colorPalette[index % colorPalette.length],
+          backgroundColor: colorPalette[index % colorPalette.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+          tension: 0.4
+        })
+      })
+    } else {
+      // Simple format: object with key-value pairs
+      const data = []
+      Object.entries(chart.values).forEach(([key, value]) => {
+        labels.push(getFormattedLabel(key, chart.chart_type))
+        data.push(getFormattedValue(value, chart.unit, chart.chart_type))
+      })
+      
+      datasets.push({
+        label: getDatasetLabel(chart.unit),
+        data,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
+      })
+    }
+  }
+  
+  return {
+    name: chart.name,
+    labels,
+    datasets
   }
 }
 
@@ -308,7 +370,11 @@ function getFormattedLabel(key, chartType) {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-    // Date format - return as is for heatmaps
+    // Date format - format for line charts and other charts
+    if (chartType === 'line' || chartType === 'bar') {
+      const date = new Date(key)
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }
     return key
   }
   return key
@@ -336,6 +402,8 @@ function getDatasetLabel(unit) {
       return 'Duration (minutes)'
     case 'meter':
       return 'Distance (meters)'
+    case 'bpm':
+      return 'Heart Rate (bpm)'
     default:
       return 'Value'
   }
