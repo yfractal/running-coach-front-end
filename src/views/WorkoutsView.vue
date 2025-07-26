@@ -97,21 +97,27 @@ const formatWeekRange = (weekStart) => {
     
     <div v-else>
       <!-- AI Assistant Response Section -->
-      <div v-if="userQuery || (charts.length > 0 && charts.some(chart => chart.description))" class="mb-8 bg-white rounded-lg shadow-md p-6">
-        <div class="prose max-w-none">
-          <div v-if="userQuery" class="mb-4">
-            <p class="text-gray-700">
-              <strong>I'm your AI Assistant</strong>, based on your query: 
-              <span class="italic text-gray-600">"{{ userQuery }}"</span>
+      <div v-if="userQuery || (charts.length > 0 && charts.some(chart => chart.description))" class="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="max-w-none">
+          <!-- User Query Section -->
+          <div v-if="userQuery" class="mb-6">
+            <p class="text-gray-700 mb-3">
+              <span class="font-semibold text-gray-900">I'm your AI Assistant</span>, based on your query:
             </p>
+            <div class="bg-gray-50 rounded-md p-3 border border-gray-200">
+              <p class="text-gray-800 italic">
+                "{{ userQuery }}"
+              </p>
+            </div>
           </div>
           
-          <div v-if="charts.length > 0 && charts.some(chart => chart.description)" class="mt-4">
-            <p class="text-gray-700 mb-3">
-              <strong>I will generate those dashboards for you:</strong>
+          <!-- Dashboard Generation Section -->
+          <div v-if="charts.length > 0 && charts.some(chart => chart.description)">
+            <p class="text-gray-700 mb-4">
+              <span class="font-semibold text-gray-900">I will generate those dashboards for you:</span>
             </p>
-            <ol class="list-decimal list-inside space-y-2 text-gray-600">
-              <li v-for="(chart, index) in charts.filter(chart => chart.description)" :key="index">
+            <ol class="list-decimal list-inside space-y-3 text-gray-600">
+              <li v-for="(chart, index) in charts.filter(chart => chart.description)" :key="index" class="pl-2">
                 {{ chart.description }}
               </li>
             </ol>
