@@ -9,6 +9,7 @@ const charts = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
+const userQuery = ref('')
 
 // Format duration in hours and minutes
 const formatDuration = (durationInSeconds) => {
@@ -51,6 +52,9 @@ const fetchWorkouts = async () => {
     // Keep the existing data for the table view (if available)
     workouts.value = response.data.workouts || []
     summary.value = response.data.summary || {}
+    
+    // Store user query from root level
+    userQuery.value = response.data.query || ''
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
@@ -92,6 +96,29 @@ const formatWeekRange = (weekStart) => {
     </div>
     
     <div v-else>
+      <!-- AI Assistant Response Section -->
+      <div v-if="userQuery || (charts.length > 0 && charts.some(chart => chart.description))" class="mb-8 bg-white rounded-lg shadow-md p-6">
+        <div class="prose max-w-none">
+          <div v-if="userQuery" class="mb-4">
+            <p class="text-gray-700">
+              <strong>I'm your AI Assistant</strong>, based on your query: 
+              <span class="italic text-gray-600">"{{ userQuery }}"</span>
+            </p>
+          </div>
+          
+          <div v-if="charts.length > 0 && charts.some(chart => chart.description)" class="mt-4">
+            <p class="text-gray-700 mb-3">
+              <strong>I will generate those dashboards for you:</strong>
+            </p>
+            <ol class="list-decimal list-inside space-y-2 text-gray-600">
+              <li v-for="(chart, index) in charts.filter(chart => chart.description)" :key="index">
+                {{ chart.description }}
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       <!-- Charts using AbstractChartRenderer -->
       <div class="mb-8">
         <AbstractChartRenderer :charts="charts" :columns="2" />
