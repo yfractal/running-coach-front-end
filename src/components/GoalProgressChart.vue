@@ -105,7 +105,10 @@ const predictedAchieveDate = computed(() => {
 // Process chart data
 const chartData = computed(() => {
   const { progress_records, achieve_date, target } = props.goal
-  
+  // console.log('Complete goal object:', props.goal)
+  // console.log('Goal fields:', Object.keys(props.goal))
+  // console.log('Goal fields:', props.goal['initial_value'])
+
   // Handle case where there are no progress records
   if (!progress_records || progress_records.length === 0) {
     return {
@@ -126,25 +129,22 @@ const chartData = computed(() => {
   const sortedRecords = [...progress_records].sort((a, b) => new Date(a.date) - new Date(b.date))
   
   // Prepare data arrays
-  const allLabels = []
-  const allData = []
+  const allLabels = [new Date(props.goal['created_at']).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })]
+  const allData = [props.goal['initial_value']]
   
-  console.log(target)
   // Part 1: Add actual progress records (solid line)
   sortedRecords.forEach(record => {
     allLabels.push(new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
     allData.push(parseFloat(record.value))
   })
 
-  // console.log(allLabels, allData)
+  if (achieve_date) {
+    const achieveDateFormatted = new Date(achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    allLabels.push(achieveDateFormatted)
+    allData.push(target)
+  }
   
-  // // Part 2: Add achieve_date with target value (dotted line)
-  // if (achieve_date) {
-  //   const achieveDateFormatted = new Date(achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-  //   allLabels.push(achieveDateFormatted)
-  //   allData.push(target)
-  // }
-  
+  console.log(allLabels, allData)
   return {
     labels: allLabels,
     datasets: [{
@@ -152,7 +152,6 @@ const chartData = computed(() => {
       data: allData,
       borderColor: 'rgb(59, 130, 246)',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.4,
       // pointRadius: (context) => {
       //   // Larger points for actual records, smaller for achieve date
       //   const index = context.dataIndex
@@ -186,40 +185,40 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: (context) => {
-          const value = context.raw
-          const unit = props.goal.unit
-          const index = context.dataIndex
-          const progressRecordsLength = props.goal.progress_records?.length || 0
-          const isActual = index < progressRecordsLength
-          const isAchieveDate = index === progressRecordsLength && props.goal.achieve_date
+        // label: (context) => {
+        //   const value = context.raw
+        //   const unit = props.goal.unit
+        //   const index = context.dataIndex
+        //   const progressRecordsLength = props.goal.progress_records?.length || 0
+        //   const isActual = index <= progressRecordsLength
+        //   const isAchieveDate = index === progressRecordsLength && props.goal.achieve_date
           
-          if (value === null) return null
+        //   if (value === null) return null
           
-          let type = 'Progress'
-          if (isActual) {
-            type = 'Actual'
-          } else if (isAchieveDate) {
-            type = 'Target (Achieve Date)'
-          }
+        //   let type = 'Progress'
+        //   if (isActual) {
+        //     type = 'Actual'
+        //   } else if (isAchieveDate) {
+        //     type = 'Predict Achieve Date'
+        //   }
           
-          return `${type}: ${value} ${unit}`
-        },
-        afterLabel: (context) => {
-          const date = context.label
-          const targetDate = new Date(props.goal.target_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-          const achieveDate = props.goal.achieve_date ? new Date(props.goal.achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null
-          const predictedDate = predictedAchieveDate.value ? predictedAchieveDate.value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null
+        //   return `${type}: ${value} ${unit}`
+        // },
+        // afterLabel: (context) => {
+        //   const date = context.label
+        //   const targetDate = new Date(props.goal.target_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        //   const achieveDate = props.goal.achieve_date ? new Date(props.goal.achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null
+        //   const predictedDate = predictedAchieveDate.value ? predictedAchieveDate.value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null
           
-          if (date === targetDate) {
-            return '🎯 Target Date'
-          } else if (achieveDate && date === achieveDate) {
-            return '✅ Achieved Date'
-          } else if (predictedDate && date === predictedDate) {
-            return '📅 Predicted Achieve Date'
-          }
-          return null
-        }
+        //   if (date === targetDate) {
+        //     return '🎯 Target Date'
+        //   } else if (achieveDate && date === achieveDate) {
+        //     return '✅ Achieved Date'
+        //   } else if (predictedDate && date === predictedDate) {
+        //     return '📅 Predicted Achieve Date'
+        //   }
+        //   return null
+        // }
       }
     },
     zoom: {
