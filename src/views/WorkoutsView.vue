@@ -10,6 +10,9 @@ const isLoading = ref(true)
 const error = ref(null)
 const expandedWeeks = ref({})
 const userQuery = ref('')
+const config = ref(null)
+const isEditingQuery = ref(false)
+const editedQuery = ref('')
 
 // Format duration in hours and minutes
 const formatDuration = (durationInSeconds) => {
@@ -53,14 +56,54 @@ const fetchWorkouts = async () => {
     workouts.value = response.data.workouts || []
     summary.value = response.data.summary || {}
     
-    // Store user query from root level
-    userQuery.value = response.data.query || ''
+    // Store config and use config.value as query
+    config.value = response.data.config || null
+    userQuery.value = config.value?.value || response.data.query || ''
   } catch (err) {
     error.value = 'Failed to load workouts'
     console.error('Error fetching workouts:', err)
   } finally {
     isLoading.value = false
   }
+}
+
+// Start editing query
+const startEditingQuery = () => {
+  editedQuery.value = userQuery.value
+  isEditingQuery.value = true
+}
+
+// Save edited query
+const saveQuery = async () => {
+  if (editedQuery.value.trim() !== userQuery.value && config.value?._id) {
+    try {
+      isLoading.value = true
+      await axios.put(`/api/configs/${config.value._id}`, {
+        value: editedQuery.value.trim()
+      })
+      
+      // Update local state
+      userQuery.value = editedQuery.value.trim()
+      if (config.value) {
+        config.value.value = editedQuery.value.trim()
+      }
+      
+      // Refresh the data with the new query
+      await fetchWorkouts()
+    } catch (err) {
+      error.value = 'Failed to update query'
+      console.error('Error updating query:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+  isEditingQuery.value = false
+}
+
+// Cancel editing
+const cancelEditing = () => {
+  isEditingQuery.value = false
+  editedQuery.value = userQuery.value
 }
 
 // Toggle week expansion
@@ -101,13 +144,52 @@ const formatWeekRange = (weekStart) => {
         <div class="max-w-none">
           <!-- User Query Section -->
           <div v-if="userQuery" class="mb-6">
-            <p class="text-gray-700 mb-3">
-              <span class="font-semibold text-gray-900">I'm your AI Assistant</span>, based on your query:
-            </p>
-            <div class="bg-gray-50 rounded-md p-3 border border-gray-200">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-gray-700">
+                <span class="font-semibold text-gray-900">I'm your AI Assistant</span>, based on your query:
+              </p>
+              <button
+                @click="startEditingQuery"
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            </div>
+            
+            <!-- Display Mode -->
+            <div v-if="!isEditingQuery" class="bg-gray-50 rounded-md p-3 border border-gray-200">
               <p class="text-gray-800 italic">
                 "{{ userQuery }}"
               </p>
+            </div>
+            
+            <!-- Edit Mode -->
+            <div v-else class="space-y-3">
+              <textarea
+                v-model="editedQuery"
+                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                rows="3"
+                placeholder="Enter your query..."
+              ></textarea>
+              <div class="flex space-x-2">
+                <button
+                  @click="saveQuery"
+                  :disabled="isLoading"
+                  class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {{ isLoading ? 'Saving...' : 'Save' }}
+                </button>
+                <button
+                  @click="cancelEditing"
+                  :disabled="isLoading"
+                  class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
           
