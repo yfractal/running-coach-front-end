@@ -142,7 +142,13 @@ const handleEdit = () => {
           ></div>
         </div>
         <div class="mt-2 text-sm text-gray-600">
-          Target: {{ goal.target }} {{ goal.unit }}
+          <div class="flex justify-between">
+            <span>Initial: {{ goal.initial_value || 0 }} {{ goal.unit }}</span>
+            <span>Target: {{ goal.target }} {{ goal.unit }}</span>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            Progress: {{ goal.initial_value || 0 }} → {{ goal.target }} {{ goal.unit }}
+          </div>
         </div>
       </div>
 

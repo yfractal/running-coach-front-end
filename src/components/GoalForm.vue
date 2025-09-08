@@ -19,6 +19,7 @@ const formData = reactive({
   title: '',
   description: '',
   target: '',
+  initial_value: '',
   unit: '',
   category: '',
   tags: [],
@@ -32,6 +33,7 @@ const initializeForm = () => {
       title: props.goal.title,
       description: props.goal.description,
       target: props.goal.target,
+      initial_value: props.goal.initial_value || 0,
       unit: props.goal.unit,
       category: props.goal.category,
       tags: [...props.goal.tags],
@@ -42,6 +44,7 @@ const initializeForm = () => {
       title: '',
       description: '',
       target: '',
+      initial_value: '',
       unit: '',
       category: '',
       tags: [],
@@ -91,6 +94,7 @@ const isFormValid = computed(() => {
   return formData.title.trim() &&
          formData.description.trim() &&
          formData.target &&
+         formData.initial_value !== '' &&
          formData.unit.trim() &&
          formData.category &&
          formData.target_date
@@ -127,7 +131,8 @@ const handleSubmit = async () => {
     
     const submitData = {
       ...formData,
-      target: parseFloat(formData.target)
+      target: parseFloat(formData.target),
+      initial_value: parseFloat(formData.initial_value) || 0
     }
 
     emit('submit', submitData)
@@ -179,8 +184,23 @@ initializeForm()
       ></textarea>
     </div>
 
-    <!-- Target and Unit -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Initial Value, Target and Unit -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label for="initial_value" class="block text-sm font-medium text-gray-700 mb-1">
+          Initial Value *
+        </label>
+        <input
+          id="initial_value"
+          v-model="formData.initial_value"
+          type="number"
+          step="0.1"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="e.g., 0"
+        />
+      </div>
+      
       <div>
         <label for="target" class="block text-sm font-medium text-gray-700 mb-1">
           Target Value *

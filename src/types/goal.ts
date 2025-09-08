@@ -3,6 +3,7 @@ export interface Goal {
   title: string;
   description: string;
   target: number;
+  initial_value: number;
   unit: string;
   category: string;
   tags: string[];
@@ -58,6 +59,7 @@ export interface CreateGoalData {
   title: string;
   description: string;
   target: number;
+  initial_value: number;
   unit: string;
   category: string;
   tags: string[];
