@@ -4,6 +4,7 @@ export interface Goal {
   description: string;
   target: number;
   initial_value: number;
+  current_value?: number;
   unit: string;
   category: string;
   tags: string[];

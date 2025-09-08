@@ -226,6 +226,9 @@ onMounted(fetchGoalData)
                 <span>Initial: {{ goal.initial_value || 0 }} {{ goal.unit }}</span>
                 <span>Target: {{ goal.target }} {{ goal.unit }}</span>
               </div>
+              <div v-if="goal.current_value !== undefined && goal.current_value !== null" class="text-center text-xs text-gray-500 mt-1">
+                Current: {{ goal.current_value }} {{ goal.unit }}
+              </div>
             </div>
           </div>
 
