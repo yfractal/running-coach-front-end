@@ -57,5 +57,13 @@ export const goalService = {
     if (!response.ok) {
       throw new Error('Failed to delete goal');
     }
+  },
+
+  async getTags() {
+    const response = await fetch(`${API_BASE_URL}/goals/tags`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch tags');
+    }
+    return response.json();
   }
 };

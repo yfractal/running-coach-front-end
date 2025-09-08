@@ -11,6 +11,7 @@ const meta = ref({
   categories: [],
   statuses: []
 })
+const availableTags = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 
@@ -22,6 +23,7 @@ const editingGoal = ref(null)
 // Filters
 const selectedCategory = ref('')
 const selectedStatus = ref('')
+const selectedTags = ref([])
 
 // Computed filtered goals
 const filteredGoals = computed(() => {
@@ -33,6 +35,12 @@ const filteredGoals = computed(() => {
 
   if (selectedStatus.value) {
     filtered = filtered.filter(goal => goal.status === selectedStatus.value)
+  }
+
+  if (selectedTags.value.length > 0) {
+    filtered = filtered.filter(goal => 
+      selectedTags.value.every(tag => goal.tags.includes(tag))
+    )
   }
 
   return filtered
@@ -55,7 +63,7 @@ const goalStats = computed(() => {
   return stats
 })
 
-// Fetch goals
+// Fetch goals and tags
 const fetchGoals = async () => {
   try {
     isLoading.value = true
@@ -73,6 +81,15 @@ const fetchGoals = async () => {
     console.error('Error fetching goals:', err)
   } finally {
     isLoading.value = false
+  }
+}
+
+const fetchTags = async () => {
+  try {
+    const response = await goalService.getTags()
+    availableTags.value = response.tags || response || []
+  } catch (err) {
+    console.error('Error fetching tags:', err)
   }
 }
 
@@ -117,10 +134,28 @@ const handleGoalUpdate = async () => {
   await fetchGoals()
 }
 
+// Tag filtering functions
+const toggleTag = (tag) => {
+  const index = selectedTags.value.indexOf(tag)
+  if (index > -1) {
+    selectedTags.value.splice(index, 1)
+  } else {
+    selectedTags.value.push(tag)
+  }
+}
+
+const removeTag = (tag) => {
+  const index = selectedTags.value.indexOf(tag)
+  if (index > -1) {
+    selectedTags.value.splice(index, 1)
+  }
+}
+
 // Clear filters
 const clearFilters = () => {
   selectedCategory.value = ''
   selectedStatus.value = ''
+  selectedTags.value = []
 }
 
 // Close modals
@@ -134,7 +169,10 @@ const closeEditModal = () => {
 }
 
 // Initialize
-onMounted(fetchGoals)
+onMounted(() => {
+  fetchGoals()
+  fetchTags()
+})
 </script>
 
 <template>
@@ -231,8 +269,37 @@ onMounted(fetchGoals)
             </select>
           </div>
 
+          <!-- Tags Filter -->
+          <div class="flex items-start space-x-2">
+            <label class="text-sm font-medium text-gray-700 mt-1">
+              Tags:
+            </label>
+            <div class="flex-1">
+              <div v-if="availableTags.length > 0" class="flex flex-wrap gap-2">
+                <button
+                  v-for="tag in availableTags"
+                  :key="tag"
+                  @click="toggleTag(tag)"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                  :class="selectedTags.includes(tag) 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'"
+                >
+                  {{ tag }}
+                  <svg v-if="selectedTags.includes(tag)" class="ml-1 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <div v-else class="text-sm text-gray-500">
+                No tags available
+              </div>
+            </div>
+          </div>
+
+          <!-- Clear Filters Button -->
           <button
-            v-if="selectedCategory || selectedStatus"
+            v-if="selectedCategory || selectedStatus || selectedTags.length > 0"
             @click="clearFilters(); fetchGoals()"
             class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
@@ -241,6 +308,9 @@ onMounted(fetchGoals)
 
           <div class="ml-auto text-sm text-gray-600">
             {{ filteredGoals.length }} of {{ goalStats.total }} goals
+            <span v-if="selectedTags.length > 0" class="ml-2 text-blue-600">
+              ({{ selectedTags.length }} tag{{ selectedTags.length > 1 ? 's' : '' }} selected)
+            </span>
           </div>
         </div>
       </div>
