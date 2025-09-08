@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { goalService } from '@/services/goalService'
 import GoalCard from '@/components/GoalCard.vue'
 import GoalForm from '@/components/GoalForm.vue'
+import GoalProgressChart from '@/components/GoalProgressChart.vue'
 
 // State
 const goals = ref([])
@@ -14,6 +15,9 @@ const meta = ref({
 const availableTags = ref([])
 const isLoading = ref(true)
 const error = ref(null)
+
+// View mode
+const viewMode = ref('cards') // 'cards' or 'charts'
 
 // Modals
 const showCreateModal = ref(false)
@@ -186,26 +190,60 @@ onMounted(() => {
             Track and manage your personal and professional goals.
           </p>
         </div>
-        <button
-          @click="showCreateModal = true"
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <svg 
-            class="-ml-1 mr-2 h-5 w-5" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
+        <div class="flex items-center space-x-4">
+          <!-- View Toggle -->
+          <div class="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              @click="viewMode = 'cards'"
+              :class="[
+                'px-3 py-1 text-sm font-medium rounded-md transition-colors',
+                viewMode === 'cards' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              ]"
+            >
+              <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Cards
+            </button>
+            <button
+              @click="viewMode = 'charts'"
+              :class="[
+                'px-3 py-1 text-sm font-medium rounded-md transition-colors',
+                viewMode === 'charts' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              ]"
+            >
+              <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Charts
+            </button>
+          </div>
+          
+          <button
+            @click="showCreateModal = true"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <path 
-              stroke-linecap="round" 
-              stroke-linejoin="round" 
-              stroke-width="2" 
-              d="M12 4v16m8-8H4" 
-            />
-          </svg>
-          Create Goal
-        </button>
+            <svg 
+              class="-ml-1 mr-2 h-5 w-5" 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="2" 
+                d="M12 4v16m8-8H4" 
+              />
+            </svg>
+            Create Goal
+          </button>
+        </div>
       </div>
 
       <!-- Stats Cards -->
@@ -335,10 +373,11 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Goals Grid -->
+    <!-- Goals Display -->
     <div v-else>
       <template v-if="filteredGoals.length > 0">
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <!-- Cards View -->
+        <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <GoalCard
             v-for="goal in filteredGoals"
             :key="goal.id"
@@ -347,6 +386,17 @@ onMounted(() => {
             @edit="handleEditGoal"
             @delete="handleDeleteGoal"
           />
+        </div>
+        
+        <!-- Charts View -->
+        <div v-else-if="viewMode === 'charts'" class="space-y-8">
+          <div
+            v-for="goal in filteredGoals"
+            :key="goal.id"
+            class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm"
+          >
+            <GoalProgressChart :goal="goal" />
+          </div>
         </div>
       </template>
       
