@@ -77,6 +77,7 @@ const commonUnits = [
   'days',
   'weeks',
   'months',
+  'phases',
   'kilometers',
   'miles',
   'pounds',
