@@ -51,18 +51,21 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  TimeScale,
   PointElement,
   LineElement,
   Title,
   Tooltip,
   Legend
 } from 'chart.js'
+import 'chartjs-adapter-date-fns'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import { Line } from 'vue-chartjs'
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  TimeScale,
   PointElement,
   LineElement,
   Title,
@@ -128,46 +131,43 @@ const chartData = computed(() => {
   // Sort progress records by date
   const sortedRecords = [...progress_records].sort((a, b) => new Date(a.date) - new Date(b.date))
   
-  // Prepare data arrays
-  const allLabels = [new Date(props.goal['created_at']).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })]
-  const allData = [props.goal['initial_value']]
+  // Prepare time-based data arrays
+  // Create time-based data points
+  const timeData = []
   
-  // Part 1: Add actual progress records (solid line)
-  sortedRecords.forEach(record => {
-    allLabels.push(new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
-    allData.push(parseFloat(record.value))
+  // Add initial point (created_at)
+  timeData.push({
+    x: new Date(props.goal['created_at']),
+    y: props.goal['initial_value']
   })
-
-  if (achieve_date) {
-    const achieveDateFormatted = new Date(achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    allLabels.push(achieveDateFormatted)
-    allData.push(target)
-  }
   
-  console.log(allLabels, allData)
+  // Add progress records
+  sortedRecords.forEach(record => {
+    timeData.push({
+      x: new Date(record.date),
+      y: parseFloat(record.value)
+    })
+  })
+  
+  // Add achieve date if exists
+  if (achieve_date) {
+    timeData.push({
+      x: new Date(achieve_date),
+      y: target
+    })
+  }
+
+  console.log('Time-based data:', timeData)
+  
   return {
-    labels: allLabels,
     datasets: [{
       label: 'Progress',
-      data: allData,
+      data: timeData,
       borderColor: 'rgb(59, 130, 246)',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      // pointRadius: (context) => {
-      //   // Larger points for actual records, smaller for achieve date
-      //   const index = context.dataIndex
-      //   return index < sortedRecords.length ? 6 : 4
-      // },
-      // pointHoverRadius: (context) => {
-      //   const index = context.dataIndex
-      //   return index < sortedRecords.length ? 8 : 6
-      // },
-      // segment: {
-      //   borderDash: (context) => {
-      //     // Solid line for actual data, dotted line to achieve_date
-      //     const index = context.p1DataIndex
-      //     return index < sortedRecords.length ? [] : [5, 5]
-      //   }
-      // }
+      tension: 0.4,
+      pointRadius: 6,
+      pointHoverRadius: 8
     }]
   }
 })
@@ -254,8 +254,20 @@ const chartOptions = {
       }
     },
     x: {
+      type: 'time',
+      time: {
+        displayFormats: {
+          day: 'MMM dd',
+          week: 'MMM dd',
+          month: 'MMM yyyy'
+        }
+      },
+      title: {
+        display: true,
+        text: 'Date'
+      },
       grid: {
-        display: false
+        display: true
       },
       ticks: {
         maxRotation: 45,
