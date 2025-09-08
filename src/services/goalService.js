@@ -65,5 +65,51 @@ export const goalService = {
       throw new Error('Failed to fetch tags');
     }
     return response.json();
+  },
+
+  // Progress Records
+  async getProgressRecords(goalId) {
+    const response = await fetch(`${API_BASE_URL}/goals/${goalId}/progress_records`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch progress records');
+    }
+    return response.json();
+  },
+
+  async createProgressRecord(goalId, progressRecord) {
+    const response = await fetch(`${API_BASE_URL}/goals/${goalId}/progress_records`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(progressRecord),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create progress record');
+    }
+    return response.json();
+  },
+
+  async updateProgressRecord(progressRecordId, updates) {
+    const response = await fetch(`${API_BASE_URL}/progress_records/${progressRecordId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ progress_record: updates }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update progress record');
+    }
+    return response.json();
+  },
+
+  async deleteProgressRecord(progressRecordId) {
+    const response = await fetch(`${API_BASE_URL}/progress_records/${progressRecordId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete progress record');
+    }
   }
 };

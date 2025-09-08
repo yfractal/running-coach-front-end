@@ -5,6 +5,7 @@ import PlansView from '@/views/PlansView.vue'
 import PlanDetails from '@/views/PlanDetails.vue'
 import WorkoutsView from '@/views/WorkoutsView.vue'
 import GoalsView from '@/views/GoalsView.vue'
+import GoalDetails from '@/views/GoalDetails.vue'
 
 const routes = [
   {
@@ -27,6 +28,12 @@ const routes = [
     path: '/goals',
     name: 'Goals',
     component: GoalsView
+  },
+  {
+    path: '/goals/:id',
+    name: 'GoalDetails',
+    component: GoalDetails,
+    props: true
   }
 ]
 
