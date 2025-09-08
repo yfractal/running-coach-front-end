@@ -35,11 +35,11 @@
     <div class="mt-4 flex flex-wrap gap-4 text-sm">
       <div class="flex items-center">
         <div class="w-4 h-0.5 bg-blue-500 mr-2"></div>
-        <span class="text-gray-700">Actual Progress</span>
+        <span class="text-gray-700">Progress Records</span>
       </div>
-      <div v-if="goal.average_speed" class="flex items-center">
+      <div v-if="goal.achieve_date" class="flex items-center">
         <div class="w-4 h-0.5 bg-blue-500 mr-2" style="border-top: 2px dotted rgb(59, 130, 246);"></div>
-        <span class="text-gray-700">Prediction (Average Speed)</span>
+        <span class="text-gray-700">To Achieve Date</span>
       </div>
     </div>
   </div>
@@ -104,7 +104,7 @@ const predictedAchieveDate = computed(() => {
 
 // Process chart data
 const chartData = computed(() => {
-  const { progress_records, target_date, initial_value, target, average_speed } = props.goal
+  const { progress_records, achieve_date, target } = props.goal
   
   // Handle case where there are no progress records
   if (!progress_records || progress_records.length === 0) {
@@ -112,7 +112,7 @@ const chartData = computed(() => {
       labels: ['No Data'],
       datasets: [{
         label: 'Progress',
-        data: [initial_value],
+        data: [0],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4,
@@ -128,43 +128,22 @@ const chartData = computed(() => {
   // Prepare data arrays
   const allLabels = []
   const allData = []
-  const allBorderDash = []
   
-  // Add actual progress records (solid line)
+  console.log(target)
+  // Part 1: Add actual progress records (solid line)
   sortedRecords.forEach(record => {
     allLabels.push(new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
     allData.push(parseFloat(record.value))
-    allBorderDash.push(false) // solid line for actual data
   })
+
+  // console.log(allLabels, allData)
   
-  // Add prediction line based on average speed (dotted line)
-  if (average_speed && average_speed > 0) {
-    const lastRecord = sortedRecords[sortedRecords.length - 1]
-    const lastRecordValue = parseFloat(lastRecord.value)
-    const lastRecordDate = new Date(lastRecord.date)
-    
-    // Calculate how many days needed to reach target
-    const remainingValue = target - lastRecordValue
-    if (remainingValue > 0) {
-      const daysToComplete = Math.ceil(remainingValue / average_speed)
-      
-      // Add prediction points (daily intervals)
-      for (let day = 1; day <= daysToComplete; day++) {
-        const futureDate = new Date(lastRecordDate)
-        futureDate.setDate(futureDate.getDate() + day)
-        
-        const projectedValue = lastRecordValue + (average_speed * day)
-        const finalValue = Math.min(projectedValue, target)
-        
-        allLabels.push(futureDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
-        allData.push(finalValue)
-        allBorderDash.push(true) // dotted line for predictions
-        
-        // Stop when we reach the target
-        if (finalValue >= target) break
-      }
-    }
-  }
+  // // Part 2: Add achieve_date with target value (dotted line)
+  // if (achieve_date) {
+  //   const achieveDateFormatted = new Date(achieve_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  //   allLabels.push(achieveDateFormatted)
+  //   allData.push(target)
+  // }
   
   return {
     labels: allLabels,
@@ -174,22 +153,22 @@ const chartData = computed(() => {
       borderColor: 'rgb(59, 130, 246)',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       tension: 0.4,
-      pointRadius: (context) => {
-        // Larger points for actual records, smaller for predictions
-        const index = context.dataIndex
-        return index < sortedRecords.length ? 6 : 3
-      },
-      pointHoverRadius: (context) => {
-        const index = context.dataIndex
-        return index < sortedRecords.length ? 8 : 5
-      },
-      segment: {
-        borderDash: (context) => {
-          // Solid line for actual data, dotted for predictions
-          const index = context.p1DataIndex
-          return index < sortedRecords.length ? [] : [5, 5]
-        }
-      }
+      // pointRadius: (context) => {
+      //   // Larger points for actual records, smaller for achieve date
+      //   const index = context.dataIndex
+      //   return index < sortedRecords.length ? 6 : 4
+      // },
+      // pointHoverRadius: (context) => {
+      //   const index = context.dataIndex
+      //   return index < sortedRecords.length ? 8 : 6
+      // },
+      // segment: {
+      //   borderDash: (context) => {
+      //     // Solid line for actual data, dotted line to achieve_date
+      //     const index = context.p1DataIndex
+      //     return index < sortedRecords.length ? [] : [5, 5]
+      //   }
+      // }
     }]
   }
 })
@@ -211,11 +190,19 @@ const chartOptions = {
           const value = context.raw
           const unit = props.goal.unit
           const index = context.dataIndex
-          const isActual = index < (props.goal.progress_records?.length || 0)
+          const progressRecordsLength = props.goal.progress_records?.length || 0
+          const isActual = index < progressRecordsLength
+          const isAchieveDate = index === progressRecordsLength && props.goal.achieve_date
           
           if (value === null) return null
           
-          const type = isActual ? 'Actual' : 'Predicted'
+          let type = 'Progress'
+          if (isActual) {
+            type = 'Actual'
+          } else if (isAchieveDate) {
+            type = 'Target (Achieve Date)'
+          }
+          
           return `${type}: ${value} ${unit}`
         },
         afterLabel: (context) => {
