@@ -16,6 +16,7 @@
     "@types/three": "^0.178.1",
     "axios": "^1.4.0",
     "chart.js": "^4.5.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
