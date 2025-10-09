@@ -25,11 +25,9 @@ const chartData = computed(() => {
 
   // Check if the API response has pre-processed chart data
   if (chartRecordsData.value.records.length != 0) {
-    console.log("chartData 3")
-
     const label = chartRecordsData.value.records[0].name
-    const labels = ["abc"]
-    const data = [1232]
+    const labels = chartRecordsData.value.records.map(record => record.date)
+    const data = chartRecordsData.value.records.map(record =>record.record_characters[0].value)
 
     return {
       labels,
