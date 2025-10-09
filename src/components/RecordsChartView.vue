@@ -16,20 +16,25 @@ const availableNames = computed(() => {
 
 // Get chart data for selected name
 const chartData = computed(() => {
+  console.log("chartData computed")
   if (!chartRecordsData.value || !selectedName.value) {
     return { labels: [], datasets: [] }
   }
   
+  console.log("chartData 2")
+
   // Check if the API response has pre-processed chart data
-  if (chartRecordsData.value.data && chartRecordsData.value.data['Learning Time']) {
-    const learningTimeData = chartRecordsData.value.data['Learning Time']
-    const labels = learningTimeData.map(item => item.week)
-    const data = learningTimeData.map(item => item.value)
-    
+  if (chartRecordsData.value.records.length != 0) {
+    console.log("chartData 3")
+
+    const label = chartRecordsData.value.records[0].name
+    const labels = ["abc"]
+    const data = [1232]
+
     return {
       labels,
       datasets: [{
-        label: 'Learning Time (minutes)',
+        label: label,
         data,
         backgroundColor: 'rgb(59, 130, 246)',
         borderColor: 'rgb(59, 130, 246)',
@@ -114,6 +119,7 @@ const fetchAvailableNames = async () => {
 
 // Fetch chart data for a specific name
 const fetchChartDataForName = async (name) => {
+  console.log('Fetching chart data for name:', name)
   try {
     isLoadingChartData.value = true
     chartError.value = null
@@ -123,6 +129,7 @@ const fetchChartDataForName = async (name) => {
       }
     })
     chartRecordsData.value = response.data
+    console.log('Chart data records count:', chartRecordsData.value.records.length)
   } catch (err) {
     chartError.value = 'Failed to load chart data for selected name. Please try again later.'
     console.error('Error fetching chart data for name:', err)
