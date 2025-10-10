@@ -40,55 +40,6 @@ const chartData = computed(() => {
       }]
     }
   }
-  
-  // Fallback: Process raw records data if API doesn't provide pre-processed data
-  const records = chartRecordsData.value.records || chartRecordsData.value.data || chartRecordsData.value
-  if (!Array.isArray(records) || records.length === 0) {
-    return { labels: [], datasets: [] }
-  }
-  
-  // Filter records for Learning Time and group by week
-  const learningTimeRecords = records.filter(record => 
-    record.name === selectedName.value && 
-    record.record_characters && 
-    record.record_characters.some(char => char.name === 'Learning Time')
-  )
-  
-  if (learningTimeRecords.length === 0) {
-    return { labels: [], datasets: [] }
-  }
-  
-  // Group by week and sum Learning Time values
-  const weekData = {}
-  learningTimeRecords.forEach(record => {
-    const recordDate = new Date(record.start_at || record.created_at || record.date)
-    const weekStart = new Date(recordDate)
-    weekStart.setDate(recordDate.getDate() - recordDate.getDay()) // Start of week (Sunday)
-    const weekKey = weekStart.toISOString().split('T')[0]
-    
-    const learningTimeChar = record.record_characters.find(char => char.name === 'Learning Time')
-    if (learningTimeChar) {
-      if (!weekData[weekKey]) {
-        weekData[weekKey] = 0
-      }
-      weekData[weekKey] += learningTimeChar.value || 0
-    }
-  })
-  
-  // Convert to chart format
-  const labels = Object.keys(weekData).sort()
-  const data = labels.map(week => weekData[week])
-  
-  return {
-    labels,
-    datasets: [{
-      label: 'Learning Time (minutes)',
-      data,
-      backgroundColor: 'rgb(59, 130, 246)',
-      borderColor: 'rgb(59, 130, 246)',
-      borderWidth: 1
-    }]
-  }
 })
 
 // Fetch available names for dropdown
