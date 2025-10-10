@@ -28,6 +28,7 @@ const chartData = computed(() => {
     const label = chartRecordsData.value.records[0].name
     const labels = chartRecordsData.value.records.map(record => record.date)
     const data = chartRecordsData.value.records.map(record =>record.record_characters[0].value)
+    const unit = chartRecordsData.value.records[0].record_characters[0].unit
 
     return {
       labels,
@@ -36,8 +37,10 @@ const chartData = computed(() => {
         data,
         backgroundColor: 'rgb(59, 130, 246)',
         borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 1
-      }]
+        borderWidth: 1,
+      }],
+      unit: unit,
+      name: selectedName
     }
   }
 })
@@ -133,9 +136,10 @@ onMounted(() => {
       <!-- Bar Chart -->
       <div v-if="chartData.labels.length > 0" class="bg-white border border-gray-200 rounded-lg p-6">
         <BarChart
-          name="Learning Time by Week"
+          :name="chartData.name"
           :labels="chartData.labels"
           :datasets="chartData.datasets"
+          :unit="chartData.unit"
         />
       </div>
 
