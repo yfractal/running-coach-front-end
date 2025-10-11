@@ -5,9 +5,12 @@ import axios from 'axios'
 
 const chartRecordsData = ref([])
 const selectedName = ref('')
+const selectedGroupBy = ref('day')
 const isLoadingChartData = ref(false)
 const chartError = ref(null)
 const availableNamesList = ref([])
+
+const groupByOptions = ['day', 'week', 'month']
 
 // Get available names for dropdown
 const availableNames = computed(() => {
@@ -89,7 +92,8 @@ const fetchChartDataForName = async (name) => {
     const url = 'http://localhost:3001/api/records/chart'
     const response = await axios.get(url, {
       params: {
-        name: name
+        name: name,
+        group_by: selectedGroupBy.value
       }
     })
     chartRecordsData.value = response.data
@@ -106,6 +110,13 @@ const fetchChartDataForName = async (name) => {
 watch(selectedName, (newName) => {
   if (newName) {
     fetchChartDataForName(newName)
+  }
+})
+
+// Watch for group_by selection changes
+watch(selectedGroupBy, () => {
+  if (selectedName.value) {
+    fetchChartDataForName(selectedName.value)
   }
 })
 
@@ -131,18 +142,37 @@ onMounted(() => {
 
     <!-- Chart Content -->
     <div v-else class="space-y-6">
-      <!-- Name Selection Dropdown -->
+      <!-- Name and Group By Selection Dropdowns -->
       <div v-if="availableNames.length > 0" class="bg-white border border-gray-200 rounded-lg p-4">
-        <label for="name-select" class="block text-sm font-medium text-gray-700 mb-2">Select Name:</label>
-        <select
-          id="name-select"
-          v-model="selectedName"
-          class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option v-for="name in availableNames" :key="name" :value="name">
-            {{ name }}
-          </option>
-        </select>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Name Selection -->
+          <div>
+            <label for="name-select" class="block text-sm font-medium text-gray-700 mb-2">Select Name:</label>
+            <select
+              id="name-select"
+              v-model="selectedName"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option v-for="name in availableNames" :key="name" :value="name">
+                {{ name }}
+              </option>
+            </select>
+          </div>
+          
+          <!-- Group By Selection -->
+          <div>
+            <label for="groupby-select" class="block text-sm font-medium text-gray-700 mb-2">Group By:</label>
+            <select
+              id="groupby-select"
+              v-model="selectedGroupBy"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option v-for="option in groupByOptions" :key="option" :value="option">
+                {{ option.charAt(0).toUpperCase() + option.slice(1) }}
+              </option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Bar Chart -->
