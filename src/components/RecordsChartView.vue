@@ -24,11 +24,22 @@ const chartData = computed(() => {
   console.log("chartData 2")
 
   // Check if the API response has pre-processed chart data
-  if (chartRecordsData.value.records.length != 0) {
-    const label = chartRecordsData.value.records[0].name
-    const labels = chartRecordsData.value.records.map(record => record.date)
-    const data = chartRecordsData.value.records.map(record =>record.record_characters[0].value)
-    const unit = chartRecordsData.value.records[0].record_characters[0].unit
+  if (chartRecordsData.value.records_count != 0) {
+    const label = chartRecordsData.value.name
+    
+    // Handle new data format: { data: { "2025-06-17": [{name, value, unit}] } }
+    const dataObj = chartRecordsData.value.data
+    const labels = []
+    const data = []
+    let unit = null
+    
+    for (const date in dataObj) {
+      labels.push(date)
+      data.push(dataObj[date][0].value)
+      if (!unit) {
+        unit = dataObj[date][0].unit
+      }
+    }
 
     return {
       labels,
@@ -40,7 +51,7 @@ const chartData = computed(() => {
         borderWidth: 1,
       }],
       unit: unit,
-      name: selectedName
+      name: selectedName.value
     }
   }
 })
@@ -75,13 +86,14 @@ const fetchChartDataForName = async (name) => {
   try {
     isLoadingChartData.value = true
     chartError.value = null
-    const response = await axios.get('http://localhost:3001/api/records', {
+    const url = 'http://localhost:3001/api/records/chart'
+    const response = await axios.get(url, {
       params: {
         name: name
       }
     })
     chartRecordsData.value = response.data
-    console.log('Chart data records count:', chartRecordsData.value.records.length)
+    console.log('Chart data records count:', chartRecordsData.value.records_count)
   } catch (err) {
     chartError.value = 'Failed to load chart data for selected name. Please try again later.'
     console.error('Error fetching chart data for name:', err)
