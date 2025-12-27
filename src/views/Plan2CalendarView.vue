@@ -168,19 +168,23 @@
         </div>
         <div class="space-y-4">
           <div>
+            <label class="block text-sm font-medium text-gray-700">ID</label>
+            <p class="mt-1 text-sm text-gray-900 font-mono">{{ selectedPlan._id }}</p>
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-700">Summary</label>
             <p class="mt-1 text-sm text-gray-900">{{ selectedPlan.summary || 'No summary' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Duration</label>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedPlan.duration }} days</p>
+            <p class="mt-1 text-sm text-gray-900">{{ formatDuration(selectedPlan.duration_seconds) }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">State</label>
             <span
               :class="[
                 'mt-1 inline-block px-2 py-1 text-xs font-medium rounded-full',
-                selectedPlan.state === 'completed'
+                selectedPlan.state === 'executed'
                   ? 'bg-green-100 text-green-800'
                   : 'bg-blue-100 text-blue-800'
               ]"
@@ -373,6 +377,21 @@ const getYearMonthOptions = (monthIndex) => {
 const getMonthName = (monthIndex) => {
   const date = new Date(2000, monthIndex, 1)
   return date.toLocaleDateString('en-US', { month: 'long' })
+}
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '0 seconds'
+  
+  const days = Math.floor(seconds / (24 * 60 * 60))
+  const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60))
+  const minutes = Math.floor((seconds % (60 * 60)) / 60)
+  
+  const parts = []
+  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`)
+  if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`)
+  if (minutes > 0 && days === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`)
+  
+  return parts.length > 0 ? parts.join(', ') : `${seconds} second${seconds !== 1 ? 's' : ''}`
 }
 
 const calendarOptions = computed(() => {

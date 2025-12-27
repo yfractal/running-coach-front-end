@@ -39,11 +39,14 @@ const handleSubmit = () => {
   // Convert datetime-local to ISO string
   const startAtISO = new Date(form.value.start_at).toISOString()
   
+  // Convert duration from days to seconds
+  const durationSeconds = form.value.duration * 24 * 60 * 60
+  
   emit('submit', {
     plan2: {
       name: form.value.name,
       start_at: startAtISO,
-      duration: form.value.duration,
+      duration_seconds: durationSeconds,
       state: form.value.state,
       summary: form.value.summary || undefined,
       color: form.value.color
@@ -158,7 +161,7 @@ const colorOptions = [
         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
       >
         <option value="plan">Plan</option>
-        <option value="completed">Completed</option>
+        <option value="executed">Executed</option>
       </select>
     </div>
 
