@@ -34,7 +34,7 @@ const currentWeekRange = computed(() => formatWeekRange(selectedWeek.value))
 const weekOptions = computed(() => {
   // Generate options for 4 weeks before and after current week
   const options = []
-  for (let i = -4; i <= 4; i++) {
+  for (let i = -48; i <= 0; i++) {
     options.push({
       value: i,
       label: i === 0 ? 'Current Week' : formatWeekRange(i),
