@@ -58,6 +58,10 @@ const props = defineProps({
   stacked: {
     type: Boolean,
     default: false
+  },
+  unit: {
+    type: String,
+    default: ''
   }
 })
 
@@ -97,10 +101,6 @@ const chartOptions = computed(() => ({
         boxWidth: 6,
         padding: 20
       }
-    },
-    title: {
-      display: true,
-      text: props.name
     }
   },
   scales: {
@@ -109,14 +109,14 @@ const chartOptions = computed(() => ({
       stacked: props.stacked,
       title: {
         display: true,
-        text: 'Minutes'
+        text: props.unit
       }
     },
     x: {
       stacked: props.stacked,
       title: {
         display: true,
-        text: props.stacked ? 'Week' : 'Week'
+        text: ''
       }
     }
   }

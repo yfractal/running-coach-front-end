@@ -6,6 +6,7 @@ import PlanDetails from '@/views/PlanDetails.vue'
 import WorkoutsView from '@/views/WorkoutsView.vue'
 import GoalsView from '@/views/GoalsView.vue'
 import GoalDetails from '@/views/GoalDetails.vue'
+import RecordsView from '@/views/RecordsView.vue'
 
 const routes = [
   {
@@ -34,6 +35,11 @@ const routes = [
     name: 'GoalDetails',
     component: GoalDetails,
     props: true
+  },
+  {
+    path: '/records',
+    name: 'Records',
+    component: RecordsView
   }
 ]
 
