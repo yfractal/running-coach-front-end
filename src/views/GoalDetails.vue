@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { goalService } from '@/services/goalService'
 import ProgressRecordList from '@/components/ProgressRecordList.vue'
 import ProgressRecordForm from '@/components/ProgressRecordForm.vue'
+import GoalProgressChart from '@/components/GoalProgressChart.vue'
+import GoalForm from '@/components/GoalForm.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +20,7 @@ const error = ref(null)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const editingRecord = ref(null)
+const showEditGoalModal = ref(false)
 
 // Computed
 const goalId = computed(() => route.params.id)
@@ -79,6 +82,9 @@ const fetchGoalData = async () => {
     
     goal.value = goalResponse.goal
     progressRecords.value = progressResponse.progress_records || []
+    
+    // Add progress_records to goal for the chart component
+    goal.value.progress_records = progressRecords.value
   } catch (err) {
     error.value = 'Failed to load goal data. Please try again later.'
     console.error('Error fetching goal data:', err)
@@ -129,6 +135,23 @@ const handleDeleteRecord = async (recordId) => {
   }
 }
 
+// Handle edit goal
+const handleEditGoal = () => {
+  showEditGoalModal.value = true
+}
+
+// Handle update goal
+const handleUpdateGoal = async (goalData) => {
+  try {
+    await goalService.updateGoal(goalId.value, goalData)
+    showEditGoalModal.value = false
+    await fetchGoalData()
+  } catch (err) {
+    console.error('Error updating goal:', err)
+    error.value = 'Failed to update goal. Please try again.'
+  }
+}
+
 // Close modals
 const closeAddModal = () => {
   showAddModal.value = false
@@ -137,6 +160,10 @@ const closeAddModal = () => {
 const closeEditModal = () => {
   showEditModal.value = false
   editingRecord.value = null
+}
+
+const closeEditGoalModal = () => {
+  showEditGoalModal.value = false
 }
 
 // Initialize
@@ -187,13 +214,20 @@ onMounted(fetchGoalData)
               <h1 class="text-2xl font-bold text-gray-900 mb-2">
                 {{ goal.title }}
               </h1>
-              <p class="text-gray-600 mb-4">
-                {{ goal.description }}
-              </p>
+              <p class="text-gray-600 mb-4 whitespace-pre-line">{{ goal.description }}</p>
             </div>
             
             <!-- Status and Category -->
             <div class="flex items-center space-x-2 ml-4">
+              <button
+                @click="handleEditGoal"
+                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                title="Edit goal"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
               <span
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                 :class="getStatusColor(goal.status)"
@@ -255,6 +289,14 @@ onMounted(fetchGoalData)
               }}
             </span>
           </div>
+        </div>
+      </div>
+
+      <!-- Progress Chart Section -->
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div class="p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6">Progress Chart</h2>
+          <GoalProgressChart :goal="goal" />
         </div>
       </div>
 
@@ -343,6 +385,32 @@ onMounted(fetchGoalData)
           :is-editing="true"
           @submit="handleUpdateRecord"
           @cancel="closeEditModal"
+        />
+      </div>
+    </div>
+
+    <!-- Edit Goal Modal -->
+    <div
+      v-if="showEditGoalModal"
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50"
+    >
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold text-gray-900">Edit Goal</h2>
+          <button
+            @click="closeEditGoalModal"
+            class="text-gray-400 hover:text-gray-500"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <GoalForm
+          :goal="goal"
+          :is-editing="true"
+          @submit="handleUpdateGoal"
+          @cancel="closeEditGoalModal"
         />
       </div>
     </div>

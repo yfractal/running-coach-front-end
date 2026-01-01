@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { goalService } from '@/services/goalService'
 import ProgressRecordForm from './ProgressRecordForm.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   goal: {
@@ -173,12 +176,18 @@ const formatValue = (value, unit) => {
 const sortedRecords = computed(() => {
   return [...progressRecords.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
+
+// Navigate to goal details page
+const navigateToGoalDetails = () => {
+  router.push(`/goals/${props.goal.id}`)
+}
 </script>
 
 <template>
   <div 
-    class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+    class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
     :class="{ 'ring-2 ring-blue-100': isExpanded }"
+    @click="navigateToGoalDetails"
   >
     <!-- Header -->
     <div class="p-6 border-b border-gray-100">
@@ -187,8 +196,8 @@ const sortedRecords = computed(() => {
           <h3 class="text-lg font-semibold text-gray-900 truncate">
             {{ goal.title }}
           </h3>
-          <p class="mt-1 text-sm text-gray-600">
-            {{ goal.description }}
+          <p class="mt-1 text-sm text-gray-600 truncate">
+            {{ goal.description.split('\n')[0] }}
           </p>
         </div>
         
@@ -249,14 +258,11 @@ const sortedRecords = computed(() => {
         </div>
         <div class="mt-2 text-sm text-gray-600">
           <div class="flex justify-between">
-            <span>Initial: {{ goal.initial_value || 0 }} {{ goal.unit }}</span>
+            <span>Current: {{ goal.current_value !== undefined && goal.current_value !== null ? goal.current_value : (goal.initial_value || 0) }} {{ goal.unit }}</span>
             <span>Target: {{ goal.target }} {{ goal.unit }}</span>
           </div>
-          <div v-if="goal.current_value !== undefined && goal.current_value !== null" class="text-xs text-gray-500 mt-1">
-            Current: {{ goal.current_value }} {{ goal.unit }}
-          </div>
           <div class="text-xs text-gray-500 mt-1">
-            Progress: {{ goal.initial_value || 0 }} → {{ goal.target }} {{ goal.unit }}
+            Progress: {{ goal.current_value !== undefined && goal.current_value !== null ? goal.current_value : (goal.initial_value || 0) }} → {{ goal.target }} {{ goal.unit }}
           </div>
         </div>
       </div>

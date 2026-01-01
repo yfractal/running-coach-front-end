@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { goalService } from '@/services/goalService'
 
 const props = defineProps({
