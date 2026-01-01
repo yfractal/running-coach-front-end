@@ -25,6 +25,18 @@ const currentRoute = computed(() => route.name)
             </router-link>
             
             <router-link 
+              to="/plan2/calendar" 
+              class="inline-flex items-center px-1 pt-1 border-b-2"
+              :class="[
+                currentRoute === 'Plan2Calendar'
+                  ? 'border-blue-500 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              ]"
+            >
+              Plan2 Calendar
+            </router-link>
+            
+            <router-link 
               to="/workouts" 
               class="inline-flex items-center px-1 pt-1 border-b-2"
               :class="[

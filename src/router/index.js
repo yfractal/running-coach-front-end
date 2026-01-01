@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Pre-import components to avoid dynamic import issues
 import PlansView from '@/views/PlansView.vue'
 import PlanDetails from '@/views/PlanDetails.vue'
+import Plan2CalendarView from '@/views/Plan2CalendarView.vue'
 import WorkoutsView from '@/views/WorkoutsView.vue'
 import GoalsView from '@/views/GoalsView.vue'
 import GoalDetails from '@/views/GoalDetails.vue'
@@ -19,6 +20,11 @@ const routes = [
     name: 'PlanDetails',
     component: PlanDetails,
     props: true
+  },
+  {
+    path: '/plan2/calendar',
+    name: 'Plan2Calendar',
+    component: Plan2CalendarView
   },
   {
     path: '/workouts',
