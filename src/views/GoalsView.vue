@@ -26,8 +26,11 @@ const editingGoal = ref(null)
 
 // Filters
 const selectedCategory = ref('')
-const selectedStatus = ref('')
+const selectedStatuses = ref(['active', 'paused']) // Default: exclude archived, cancelled, and completed
 const selectedTags = ref([])
+
+// Available statuses
+const availableStatuses = ['active', 'paused', 'completed', 'cancelled', 'archived']
 
 // Computed filtered goals
 const filteredGoals = computed(() => {
@@ -37,8 +40,8 @@ const filteredGoals = computed(() => {
     filtered = filtered.filter(goal => goal.category === selectedCategory.value)
   }
 
-  if (selectedStatus.value) {
-    filtered = filtered.filter(goal => goal.status === selectedStatus.value)
+  if (selectedStatuses.value.length > 0) {
+    filtered = filtered.filter(goal => selectedStatuses.value.includes(goal.status))
   }
 
   if (selectedTags.value.length > 0) {
@@ -57,11 +60,14 @@ const goalStats = computed(() => {
     active: 0,
     completed: 0,
     paused: 0,
-    cancelled: 0
+    cancelled: 0,
+    archived: 0
   }
 
   goals.value.forEach(goal => {
-    stats[goal.status]++
+    if (stats.hasOwnProperty(goal.status)) {
+      stats[goal.status]++
+    }
   })
 
   return stats
@@ -73,9 +79,9 @@ const fetchGoals = async () => {
     isLoading.value = true
     error.value = null
     
+    // Fetch all goals (filtering is done client-side for status checkboxes)
     const filters = {}
     if (selectedCategory.value) filters.category = selectedCategory.value
-    if (selectedStatus.value) filters.status = selectedStatus.value
     
     const response = await goalService.getGoals(filters)
     goals.value = response.goals
@@ -155,10 +161,20 @@ const removeTag = (tag) => {
   }
 }
 
+// Toggle status filter
+const toggleStatus = (status) => {
+  const index = selectedStatuses.value.indexOf(status)
+  if (index > -1) {
+    selectedStatuses.value.splice(index, 1)
+  } else {
+    selectedStatuses.value.push(status)
+  }
+}
+
 // Clear filters
 const clearFilters = () => {
   selectedCategory.value = ''
-  selectedStatus.value = ''
+  selectedStatuses.value = ['active', 'paused'] // Reset to default
   selectedTags.value = []
 }
 
@@ -291,20 +307,27 @@ onMounted(() => {
           </div>
 
           <div class="flex items-center space-x-2">
-            <label for="status-filter" class="text-sm font-medium text-gray-700">
+            <label class="text-sm font-medium text-gray-700">
               Status:
             </label>
-            <select
-              id="status-filter"
-              v-model="selectedStatus"
-              @change="fetchGoals"
-              class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Statuses</option>
-              <option v-for="status in meta.statuses" :key="status" :value="status">
-                {{ status.charAt(0).toUpperCase() + status.slice(1) }}
-              </option>
-            </select>
+            <div class="flex items-center space-x-3">
+              <label
+                v-for="status in availableStatuses"
+                :key="status"
+                class="inline-flex items-center space-x-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  :value="status"
+                  :checked="selectedStatuses.includes(status)"
+                  @change="toggleStatus(status)"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">
+                  {{ status.charAt(0).toUpperCase() + status.slice(1) }}
+                </span>
+              </label>
+            </div>
           </div>
 
           <!-- Tags Filter -->
@@ -337,7 +360,7 @@ onMounted(() => {
 
           <!-- Clear Filters Button -->
           <button
-            v-if="selectedCategory || selectedStatus || selectedTags.length > 0"
+            v-if="selectedCategory || selectedStatuses.length !== 2 || !selectedStatuses.includes('active') || !selectedStatuses.includes('paused') || selectedTags.length > 0"
             @click="clearFilters(); fetchGoals()"
             class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
           >

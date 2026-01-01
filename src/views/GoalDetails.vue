@@ -41,6 +41,8 @@ const getStatusColor = (status) => {
       return 'bg-yellow-100 text-yellow-800'
     case 'cancelled':
       return 'bg-red-100 text-red-800'
+    case 'archived':
+      return 'bg-gray-100 text-gray-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
@@ -152,6 +154,28 @@ const handleUpdateGoal = async (goalData) => {
   }
 }
 
+// Handle archive goal
+const handleArchive = async () => {
+  try {
+    await goalService.updateGoal(goalId.value, { status: 'archived' })
+    await fetchGoalData()
+  } catch (err) {
+    console.error('Error archiving goal:', err)
+    error.value = 'Failed to archive goal. Please try again.'
+  }
+}
+
+// Handle unarchive goal (activate archived goal)
+const handleUnarchive = async () => {
+  try {
+    await goalService.updateGoal(goalId.value, { status: 'active' })
+    await fetchGoalData()
+  } catch (err) {
+    console.error('Error unarchiving goal:', err)
+    error.value = 'Failed to activate goal. Please try again.'
+  }
+}
+
 // Close modals
 const closeAddModal = () => {
   showAddModal.value = false
@@ -226,6 +250,26 @@ onMounted(fetchGoalData)
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button
+                v-if="goal.status !== 'archived'"
+                @click="handleArchive"
+                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                title="Archive goal"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+              </button>
+              <button
+                v-if="goal.status === 'archived'"
+                @click="handleUnarchive"
+                class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                title="Activate goal"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
               <span
