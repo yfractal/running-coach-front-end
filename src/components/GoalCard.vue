@@ -339,13 +339,13 @@ const navigateToGoalDetails = () => {
     </div>
 
     <!-- Expanded Progress Records Section -->
-    <div v-if="isExpanded">
+    <div v-if="isExpanded" @click.stop>
       <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-medium text-gray-900">Progress Records</h4>
           <button
             v-if="goal.status === 'active' && !showNewRecordForm"
-            @click="showNewRecordForm = true"
+            @click.stop="showNewRecordForm = true"
             class="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             + Add Record
@@ -353,7 +353,7 @@ const navigateToGoalDetails = () => {
         </div>
         
         <!-- New Record Form -->
-        <div v-if="showNewRecordForm" class="mb-4">
+        <div v-if="showNewRecordForm" class="mb-4" @click.stop>
           <ProgressRecordForm
             :goal="goal"
             @submit="handleAddRecord"
