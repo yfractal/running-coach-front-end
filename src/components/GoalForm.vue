@@ -71,6 +71,7 @@ const categories = [
 ]
 
 const commonUnits = [
+  'stages',
   'seconds',
   'minutes',
   'hours',
