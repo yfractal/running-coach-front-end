@@ -10,6 +10,10 @@ const props = defineProps({
   goal: {
     type: Object,
     required: true
+  },
+  availableTags: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -199,6 +203,16 @@ const sortedRecords = computed(() => {
   return [...progressRecords.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
+// Get first tag color for background
+const firstTagColor = computed(() => {
+  if (!props.goal.tags || props.goal.tags.length === 0 || !props.availableTags || props.availableTags.length === 0) {
+    return null
+  }
+  const firstTagName = props.goal.tags[0]
+  const tagInfo = props.availableTags.find(tag => tag.name === firstTagName)
+  return tagInfo ? tagInfo.color : null
+})
+
 // Navigate to goal details page
 const navigateToGoalDetails = () => {
   router.push(`/goals/${props.goal.id}`)
@@ -207,8 +221,9 @@ const navigateToGoalDetails = () => {
 
 <template>
   <div 
-    class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+    class="rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
     :class="{ 'ring-2 ring-blue-100': isExpanded }"
+    :style="firstTagColor ? { backgroundColor: firstTagColor + '10', borderColor: firstTagColor + '40' } : { backgroundColor: '#ffffff' }"
     @click="navigateToGoalDetails"
   >
     <!-- Header -->

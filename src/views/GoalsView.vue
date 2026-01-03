@@ -10,7 +10,8 @@ const goals = ref([])
 const meta = ref({
   total: 0,
   categories: [],
-  statuses: []
+  statuses: [],
+  tags: []
 })
 const availableTags = ref([])
 const isLoading = ref(true)
@@ -86,6 +87,10 @@ const fetchGoals = async () => {
     const response = await goalService.getGoals(filters)
     goals.value = response.goals
     meta.value = response.meta
+    // Update available tags from meta
+    if (response.meta.tags) {
+      availableTags.value = response.meta.tags
+    }
   } catch (err) {
     error.value = 'Failed to load goals. Please try again later.'
     console.error('Error fetching goals:', err)
@@ -95,12 +100,8 @@ const fetchGoals = async () => {
 }
 
 const fetchTags = async () => {
-  try {
-    const response = await goalService.getTags()
-    availableTags.value = response.tags || response || []
-  } catch (err) {
-    console.error('Error fetching tags:', err)
-  }
+  // Tags are now fetched as part of goals response in meta.tags
+  // This function is kept for backward compatibility but is no longer needed
 }
 
 // Handle create goal
@@ -145,12 +146,12 @@ const handleGoalUpdate = async () => {
 }
 
 // Tag filtering functions
-const toggleTag = (tag) => {
-  const index = selectedTags.value.indexOf(tag)
+const toggleTag = (tagName) => {
+  const index = selectedTags.value.indexOf(tagName)
   if (index > -1) {
     selectedTags.value.splice(index, 1)
   } else {
-    selectedTags.value.push(tag)
+    selectedTags.value.push(tagName)
   }
 }
 
@@ -191,7 +192,6 @@ const closeEditModal = () => {
 // Initialize
 onMounted(() => {
   fetchGoals()
-  fetchTags()
 })
 </script>
 
@@ -339,15 +339,21 @@ onMounted(() => {
               <div v-if="availableTags.length > 0" class="flex flex-wrap gap-2">
                 <button
                   v-for="tag in availableTags"
-                  :key="tag"
-                  @click="toggleTag(tag)"
-                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors"
-                  :class="selectedTags.includes(tag) 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'"
+                  :key="tag.name"
+                  @click="toggleTag(tag.name)"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-opacity border-2"
+                  :style="{
+                    backgroundColor: tag.color,
+                    borderColor: tag.color,
+                    color: '#ffffff',
+                    opacity: selectedTags.includes(tag.name) ? '1' : '0.7'
+                  }"
                 >
-                  {{ tag }}
-                  <svg v-if="selectedTags.includes(tag)" class="ml-1 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  {{ tag.name }}
+                  <span class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-white bg-opacity-20">
+                    {{ tag.count }}
+                  </span>
+                  <svg v-if="selectedTags.includes(tag.name)" class="ml-1.5 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>
@@ -405,6 +411,7 @@ onMounted(() => {
             v-for="goal in filteredGoals"
             :key="goal.id"
             :goal="goal"
+            :available-tags="availableTags"
             @update="handleGoalUpdate"
             @edit="handleEditGoal"
             @delete="handleDeleteGoal"
