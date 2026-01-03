@@ -4,7 +4,9 @@ export const goalService = {
   async getGoals(filters = {}) {
     const queryParams = new URLSearchParams();
     if (filters.category) queryParams.append('category', filters.category);
-    if (filters.status) queryParams.append('status', filters.status);
+    // Default to 'active' status if not specified
+    const status = filters.status || 'active';
+    queryParams.append('status', status);
     
     const url = `${API_BASE_URL}/goals${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await fetch(url);

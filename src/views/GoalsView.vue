@@ -26,7 +26,7 @@ const editingGoal = ref(null)
 
 // Filters
 const selectedCategory = ref('')
-const selectedStatuses = ref(['active', 'paused']) // Default: exclude archived, cancelled, and completed
+const selectedStatuses = ref(['active']) // Default: exclude archived, cancelled, and completed
 const selectedTags = ref([])
 
 // Available statuses
