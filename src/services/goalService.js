@@ -113,5 +113,28 @@ export const goalService = {
     if (!response.ok) {
       throw new Error('Failed to delete progress record');
     }
+  },
+
+  // Events
+  async getEvents(goalId, filters = {}) {
+    const queryParams = new URLSearchParams();
+    
+    // Support time range filters
+    if (filters.time_range) {
+      queryParams.append('time_range', filters.time_range);
+    }
+    if (filters.start_date) {
+      queryParams.append('start_date', filters.start_date);
+    }
+    if (filters.end_date) {
+      queryParams.append('end_date', filters.end_date);
+    }
+    
+    const url = `${API_BASE_URL}/goals/${goalId}/events${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch events');
+    }
+    return response.json();
   }
 };

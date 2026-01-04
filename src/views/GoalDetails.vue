@@ -13,8 +13,13 @@ const router = useRouter()
 // State
 const goal = ref(null)
 const progressRecords = ref([])
+const events = ref([])
 const isLoading = ref(true)
 const error = ref(null)
+const timeRangeFilter = ref('current_week')
+const customStartDate = ref('')
+const customEndDate = ref('')
+const showCustomDatePicker = ref(false)
 
 // Modals
 const showAddModal = ref(false)
@@ -28,6 +33,19 @@ const goalId = computed(() => route.params.id)
 // Format date for display
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
+}
+
+// Format date and time for display
+const formatDateTime = (dateString) => {
+  return new Date(dateString).toLocaleString()
+}
+
+// Format date with day of the week
+const formatDateTimeWithDay = (dateString) => {
+  const date = new Date(dateString)
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' })
+  const dateTime = date.toLocaleString()
+  return `${dayOfWeek}, ${dateTime}`
 }
 
 // Get status color
@@ -87,11 +105,55 @@ const fetchGoalData = async () => {
     
     // Add progress_records to goal for the chart component
     goal.value.progress_records = progressRecords.value
+    
+    // Fetch events
+    await fetchEvents()
   } catch (err) {
     error.value = 'Failed to load goal data. Please try again later.'
     console.error('Error fetching goal data:', err)
   } finally {
     isLoading.value = false
+  }
+}
+
+// Fetch events with time range filter
+const fetchEvents = async () => {
+  try {
+    const filters = {}
+    
+    if (timeRangeFilter.value === 'custom') {
+      if (customStartDate.value) {
+        filters.start_date = customStartDate.value
+      }
+      if (customEndDate.value) {
+        filters.end_date = customEndDate.value
+      }
+    } else {
+      filters.time_range = timeRangeFilter.value
+    }
+    
+    const response = await goalService.getEvents(goalId.value, filters)
+    events.value = response.events || []
+  } catch (err) {
+    console.error('Error fetching events:', err)
+    events.value = []
+  }
+}
+
+// Handle time range filter change
+const handleTimeRangeChange = () => {
+  if (timeRangeFilter.value === 'custom') {
+    showCustomDatePicker.value = true
+  } else {
+    showCustomDatePicker.value = false
+    fetchEvents()
+  }
+}
+
+// Handle custom date range apply
+const applyCustomDateRange = () => {
+  if (customStartDate.value && customEndDate.value) {
+    fetchEvents()
   }
 }
 
@@ -332,6 +394,98 @@ onMounted(fetchGoalData)
                 : `${Math.abs(getDaysUntilTarget(goal.target_date))} days overdue` 
               }}
             </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events Section -->
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900">Events</h2>
+            <div class="flex items-center space-x-4">
+              <!-- Time Range Filter -->
+              <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Time Range:</label>
+                <select
+                  v-model="timeRangeFilter"
+                  @change="handleTimeRangeChange"
+                  class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="current_week">Current Week</option>
+                  <option value="current_month">Current Month</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              
+              <!-- Custom Date Range Picker -->
+              <div v-if="showCustomDatePicker" class="flex items-center space-x-2">
+                <input
+                  v-model="customStartDate"
+                  type="date"
+                  class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Start Date"
+                />
+                <span class="text-gray-500">to</span>
+                <input
+                  v-model="customEndDate"
+                  type="date"
+                  class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="End Date"
+                />
+                <button
+                  @click="applyCustomDateRange"
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Events List -->
+          <div v-if="events.length === 0" class="text-center py-8 text-gray-500">
+            No events found for the selected time range.
+          </div>
+          <div v-else class="space-y-4">
+            <div
+              v-for="event in events"
+              :key="event.id"
+              class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="text-base font-semibold text-gray-900 mb-1">
+                    {{ event.title || event.name || 'Untitled Event' }}
+                    <span v-if="event.quality && event.unit" class="text-sm font-normal text-gray-600 ml-2">
+                      ({{ event.quality }} {{ event.unit }})
+                    </span>
+                  </h3>
+                  <p v-if="event.description" class="text-sm text-gray-600 mb-2">
+                    {{ event.description }}
+                  </p>
+                  <div class="flex items-center space-x-4 text-xs text-gray-500">
+                    <span v-if="event.start_at || event.start_date">
+                      <span class="font-medium">Start:</span> {{ formatDateTimeWithDay(event.start_at || event.start_date) }}
+                    </span>
+                    <span v-if="event.end_at || event.end_date">
+                      <span class="font-medium">End:</span> {{ formatDateTime(event.end_at || event.end_date) }}
+                    </span>
+                    <span v-if="event.created_at">
+                      <span class="font-medium">Created:</span> {{ formatDate(event.created_at) }}
+                    </span>
+                  </div>
+                </div>
+                <div v-if="event.status" class="ml-4">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="getStatusColor(event.status)"
+                  >
+                    {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
