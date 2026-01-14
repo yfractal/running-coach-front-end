@@ -130,6 +130,14 @@ export const goalService = {
       queryParams.append('end_date', filters.end_date);
     }
     
+    // Support pagination
+    if (filters.page) {
+      queryParams.append('page', filters.page);
+    }
+    if (filters.per_page) {
+      queryParams.append('per_page', filters.per_page);
+    }
+    
     const url = `${API_BASE_URL}/goals/${goalId}/events${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await fetch(url);
     if (!response.ok) {

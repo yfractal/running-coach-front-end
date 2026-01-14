@@ -14,12 +14,15 @@ const router = useRouter()
 const goal = ref(null)
 const progressRecords = ref([])
 const events = ref([])
+const eventsMetadata = ref(null)
 const isLoading = ref(true)
 const error = ref(null)
-const timeRangeFilter = ref('current_week')
+const timeRangeFilter = ref('')
 const customStartDate = ref('')
 const customEndDate = ref('')
 const showCustomDatePicker = ref(false)
+const currentPage = ref(1)
+const perPage = ref(20)
 
 // Modals
 const showAddModal = ref(false)
@@ -116,10 +119,13 @@ const fetchGoalData = async () => {
   }
 }
 
-// Fetch events with time range filter
+// Fetch events with time range filter and pagination
 const fetchEvents = async () => {
   try {
-    const filters = {}
+    const filters = {
+      page: currentPage.value,
+      per_page: perPage.value
+    }
     
     if (timeRangeFilter.value === 'custom') {
       if (customStartDate.value) {
@@ -128,15 +134,17 @@ const fetchEvents = async () => {
       if (customEndDate.value) {
         filters.end_date = customEndDate.value
       }
-    } else {
+    } else if (timeRangeFilter.value) {
       filters.time_range = timeRangeFilter.value
     }
     
     const response = await goalService.getEvents(goalId.value, filters)
     events.value = response.events || []
+    eventsMetadata.value = response.meta || null
   } catch (err) {
     console.error('Error fetching events:', err)
     events.value = []
+    eventsMetadata.value = null
   }
 }
 
@@ -146,6 +154,7 @@ const handleTimeRangeChange = () => {
     showCustomDatePicker.value = true
   } else {
     showCustomDatePicker.value = false
+    currentPage.value = 1 // Reset to first page
     fetchEvents()
   }
 }
@@ -153,6 +162,27 @@ const handleTimeRangeChange = () => {
 // Handle custom date range apply
 const applyCustomDateRange = () => {
   if (customStartDate.value && customEndDate.value) {
+    currentPage.value = 1 // Reset to first page
+    fetchEvents()
+  }
+}
+
+// Handle pagination
+const goToPage = (page) => {
+  currentPage.value = page
+  fetchEvents()
+}
+
+const nextPage = () => {
+  if (eventsMetadata.value && currentPage.value < eventsMetadata.value.total_pages) {
+    currentPage.value++
+    fetchEvents()
+  }
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
     fetchEvents()
   }
 }
@@ -412,6 +442,7 @@ onMounted(fetchGoalData)
                   @change="handleTimeRangeChange"
                   class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
+                  <option value="">All Time</option>
                   <option value="current_week">Current Week</option>
                   <option value="current_month">Current Month</option>
                   <option value="custom">Custom</option>
@@ -447,42 +478,124 @@ onMounted(fetchGoalData)
           <div v-if="events.length === 0" class="text-center py-8 text-gray-500">
             No events found for the selected time range.
           </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="event in events"
-              :key="event.id"
-              class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-            >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <h3 class="text-base font-semibold text-gray-900 mb-1">
-                    {{ event.title || event.name || 'Untitled Event' }}
-                    <span v-if="event.quality && event.unit" class="text-sm font-normal text-gray-600 ml-2">
-                      ({{ event.quality }} {{ event.unit }})
-                    </span>
-                  </h3>
-                  <p v-if="event.description" class="text-sm text-gray-600 mb-2">
-                    {{ event.description }}
-                  </p>
-                  <div class="flex items-center space-x-4 text-xs text-gray-500">
-                    <span v-if="event.start_at || event.start_date">
-                      <span class="font-medium">Start:</span> {{ formatDateTimeWithDay(event.start_at || event.start_date) }}
-                    </span>
-                    <span v-if="event.end_at || event.end_date">
-                      <span class="font-medium">End:</span> {{ formatDateTime(event.end_at || event.end_date) }}
-                    </span>
-                    <span v-if="event.created_at">
-                      <span class="font-medium">Created:</span> {{ formatDate(event.created_at) }}
+          <div v-else>
+            <div class="space-y-4 mb-6">
+              <div
+                v-for="event in events"
+                :key="event.id"
+                class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-base font-semibold text-gray-900 mb-1">
+                      {{ event.title || event.name || 'Untitled Event' }}
+                      <span v-if="event.quality && event.unit" class="text-sm font-normal text-gray-600 ml-2">
+                        ({{ event.quality }} {{ event.unit }})
+                      </span>
+                    </h3>
+                    <p v-if="event.description" class="text-sm text-gray-600 mb-2">
+                      {{ event.description }}
+                    </p>
+                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                      <span v-if="event.start_at || event.start_date">
+                        <span class="font-medium">Start:</span> {{ formatDateTimeWithDay(event.start_at || event.start_date) }}
+                      </span>
+                      <span v-if="event.end_at || event.end_date">
+                        <span class="font-medium">End:</span> {{ formatDateTime(event.end_at || event.end_date) }}
+                      </span>
+                      <span v-if="event.created_at">
+                        <span class="font-medium">Created:</span> {{ formatDate(event.created_at) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div v-if="event.status" class="ml-4">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      :class="getStatusColor(event.status)"
+                    >
+                      {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
                     </span>
                   </div>
                 </div>
-                <div v-if="event.status" class="ml-4">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusColor(event.status)"
-                  >
-                    {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
-                  </span>
+              </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div v-if="eventsMetadata && eventsMetadata.total_pages > 1" class="flex items-center justify-between border-t border-gray-200 pt-4">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <button
+                  @click="previousPage"
+                  :disabled="currentPage === 1"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  @click="nextPage"
+                  :disabled="currentPage === eventsMetadata.total_pages"
+                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span>
+                    to
+                    <span class="font-medium">{{ Math.min(currentPage * perPage, eventsMetadata.total) }}</span>
+                    of
+                    <span class="font-medium">{{ eventsMetadata.total }}</span>
+                    events
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      @click="previousPage"
+                      :disabled="currentPage === 1"
+                      class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span class="sr-only">Previous</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    
+                    <!-- Page numbers -->
+                    <template v-for="page in eventsMetadata.total_pages" :key="page">
+                      <button
+                        v-if="page === 1 || page === eventsMetadata.total_pages || (page >= currentPage - 1 && page <= currentPage + 1)"
+                        @click="goToPage(page)"
+                        :class="[
+                          page === currentPage
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                          'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                        ]"
+                      >
+                        {{ page }}
+                      </button>
+                      <span
+                        v-else-if="page === currentPage - 2 || page === currentPage + 2"
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                      >
+                        ...
+                      </span>
+                    </template>
+
+                    <button
+                      @click="nextPage"
+                      :disabled="currentPage === eventsMetadata.total_pages"
+                      class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span class="sr-only">Next</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
                 </div>
               </div>
             </div>
