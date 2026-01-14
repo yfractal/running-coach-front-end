@@ -4,7 +4,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import PlansView from '@/views/PlansView.vue'
 import PlanDetails from '@/views/PlanDetails.vue'
 import Plan2CalendarView from '@/views/Plan2CalendarView.vue'
-import WorkoutsView from '@/views/WorkoutsView.vue'
+import WorkoutsAggregateView from '@/views/WorkoutsAggregateView.vue'
+import WorkoutsIndexView from '@/views/WorkoutsIndexView.vue'
+import WorkoutShowView from '@/views/WorkoutShowView.vue'
+import WorkoutEditView from '@/views/WorkoutEditView.vue'
 import GoalsView from '@/views/GoalsView.vue'
 import GoalDetails from '@/views/GoalDetails.vue'
 import RecordsView from '@/views/RecordsView.vue'
@@ -27,9 +30,26 @@ const routes = [
     component: Plan2CalendarView
   },
   {
+    path: '/workouts-aggregate',
+    name: 'WorkoutsAggregate',
+    component: WorkoutsAggregateView
+  },
+  {
     path: '/workouts',
-    name: 'Workouts',
-    component: WorkoutsView
+    name: 'WorkoutsIndex',
+    component: WorkoutsIndexView
+  },
+  {
+    path: '/workouts/:id',
+    name: 'WorkoutShow',
+    component: WorkoutShowView,
+    props: true
+  },
+  {
+    path: '/workouts/:id/edit',
+    name: 'WorkoutEdit',
+    component: WorkoutEditView,
+    props: true
   },
   {
     path: '/goals',
