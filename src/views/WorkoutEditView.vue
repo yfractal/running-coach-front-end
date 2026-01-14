@@ -246,7 +246,7 @@ onMounted(() => {
               v-model.number="formData.average_heart_rate"
               type="number"
               min="0"
-              step="1"
+              step="any"
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -261,7 +261,7 @@ onMounted(() => {
               v-model.number="formData.total_energy_burned"
               type="number"
               min="0"
-              step="1"
+              step="any"
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
