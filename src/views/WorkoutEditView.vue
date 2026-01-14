@@ -92,24 +92,8 @@ const saveWorkout = async () => {
     isSaving.value = true
     error.value = null
     
-    // Validate duration
-    const duration = Number(formData.value.duration)
-    if (isNaN(duration) || duration < 0) {
-      error.value = 'Duration must be a valid number greater than or equal to 0.'
-      isSaving.value = false
-      return
-    }
-    
-    // Prepare update data
+    // Only send the note in the update
     const updates = {
-      workout_activity_type: formData.value.workout_activity_type,
-      start_date: new Date(formData.value.start_date).toISOString(),
-      duration: duration,
-      total_distance: parseFloat(formData.value.total_distance) || 0,
-      average_heart_rate: parseFloat(formData.value.average_heart_rate) || 0,
-      total_energy_burned: parseFloat(formData.value.total_energy_burned) || 0,
-      device: formData.value.device,
-      source_revision: formData.value.source_revision,
       custom_meta: {
         note: formData.value.note
       }
@@ -178,8 +162,8 @@ onMounted(() => {
             <select
               id="activity-type"
               v-model="formData.workout_activity_type"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             >
               <option value="">Select Activity Type</option>
               <option value="HKWorkoutActivityTypeRunning">Running</option>
@@ -201,8 +185,8 @@ onMounted(() => {
               id="start-date"
               v-model="formData.start_date"
               type="datetime-local"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -217,7 +201,8 @@ onMounted(() => {
               type="number"
               min="0"
               step="any"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -232,7 +217,8 @@ onMounted(() => {
               type="number"
               min="0"
               step="0.01"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -247,7 +233,8 @@ onMounted(() => {
               type="number"
               min="0"
               step="any"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -262,7 +249,8 @@ onMounted(() => {
               type="number"
               min="0"
               step="any"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -275,7 +263,8 @@ onMounted(() => {
               id="device"
               v-model="formData.device"
               type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
@@ -288,7 +277,8 @@ onMounted(() => {
               id="source-revision"
               v-model="formData.source_revision"
               type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
             />
           </div>
 
