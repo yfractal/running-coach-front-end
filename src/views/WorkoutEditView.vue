@@ -19,7 +19,8 @@ const formData = ref({
   average_heart_rate: 0,
   total_energy_burned: 0,
   device: '',
-  source_revision: ''
+  source_revision: '',
+  note: ''
 })
 
 // Format date for input
@@ -27,6 +28,20 @@ const formatDateForInput = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return date.toISOString().slice(0, 16)
+}
+
+// Map activity_type string to workout_activity_type string for form
+const mapActivityTypeToWorkoutActivityType = (activityType) => {
+  const mapping = {
+    'running': 'HKWorkoutActivityTypeRunning',
+    'cycling': 'HKWorkoutActivityTypeCycling',
+    'walking': 'HKWorkoutActivityTypeWalking',
+    'high_intensity_interval_training': 'HKWorkoutActivityTypeHighIntensityIntervalTraining',
+    'traditional_strength_training': 'HKWorkoutActivityTypeTraditionalStrengthTraining',
+    'functional_strength_training': 'HKWorkoutActivityTypeFunctionalStrengthTraining',
+    'flexibility': 'HKWorkoutActivityTypeFlexibility'
+  }
+  return mapping[activityType] || ''
 }
 
 // Fetch workout
@@ -38,15 +53,30 @@ const fetchWorkout = async () => {
     workout.value = data
     
     // Populate form
+    // Map activity_type to workout_activity_type for the form
+    // If workout_activity_type is already a string, use it; otherwise map from activity_type
+    let workoutActivityType = ''
+    if (data.workout_activity_type) {
+      if (typeof data.workout_activity_type === 'string') {
+        workoutActivityType = data.workout_activity_type
+      } else {
+        // It's a number, map from activity_type
+        workoutActivityType = mapActivityTypeToWorkoutActivityType(data.activity_type)
+      }
+    } else if (data.activity_type) {
+      workoutActivityType = mapActivityTypeToWorkoutActivityType(data.activity_type)
+    }
+    
     formData.value = {
-      workout_activity_type: data.workout_activity_type || '',
+      workout_activity_type: workoutActivityType,
       start_date: formatDateForInput(data.start_date),
       duration: data.duration || 0,
       total_distance: data.total_distance || 0,
       average_heart_rate: data.average_heart_rate || 0,
       total_energy_burned: data.total_energy_burned || 0,
       device: data.device || '',
-      source_revision: data.source_revision || ''
+      source_revision: data.source_revision || '',
+      note: (data.custom_meta && data.custom_meta.note) || ''
     }
   } catch (err) {
     error.value = 'Failed to load workout. Please try again later.'
@@ -62,16 +92,27 @@ const saveWorkout = async () => {
     isSaving.value = true
     error.value = null
     
+    // Validate duration
+    const duration = Number(formData.value.duration)
+    if (isNaN(duration) || duration < 0) {
+      error.value = 'Duration must be a valid number greater than or equal to 0.'
+      isSaving.value = false
+      return
+    }
+    
     // Prepare update data
     const updates = {
       workout_activity_type: formData.value.workout_activity_type,
       start_date: new Date(formData.value.start_date).toISOString(),
-      duration: parseFloat(formData.value.duration),
-      total_distance: parseFloat(formData.value.total_distance),
-      average_heart_rate: parseFloat(formData.value.average_heart_rate),
-      total_energy_burned: parseFloat(formData.value.total_energy_burned),
+      duration: duration,
+      total_distance: parseFloat(formData.value.total_distance) || 0,
+      average_heart_rate: parseFloat(formData.value.average_heart_rate) || 0,
+      total_energy_burned: parseFloat(formData.value.total_energy_burned) || 0,
       device: formData.value.device,
-      source_revision: formData.value.source_revision
+      source_revision: formData.value.source_revision,
+      custom_meta: {
+        note: formData.value.note
+      }
     }
     
     await workoutService.updateWorkout(route.params.id, updates)
@@ -147,6 +188,7 @@ onMounted(() => {
               <option value="HKWorkoutActivityTypeHighIntensityIntervalTraining">HIIT</option>
               <option value="HKWorkoutActivityTypeTraditionalStrengthTraining">Traditional Strength Training</option>
               <option value="HKWorkoutActivityTypeFunctionalStrengthTraining">Functional Strength Training</option>
+              <option value="HKWorkoutActivityTypeFlexibility">Flexibility</option>
             </select>
           </div>
 
@@ -175,7 +217,6 @@ onMounted(() => {
               type="number"
               min="0"
               step="1"
-              required
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -249,6 +290,20 @@ onMounted(() => {
               type="text"
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+          </div>
+
+          <!-- Note -->
+          <div>
+            <label for="note" class="block text-sm font-medium text-gray-700 mb-2">
+              Note
+            </label>
+            <textarea
+              id="note"
+              v-model="formData.note"
+              rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Add a note about this workout..."
+            ></textarea>
           </div>
         </div>
 

@@ -201,6 +201,12 @@ onMounted(() => {
         </div>
       </div>
 
+      <!-- Note -->
+      <div v-if="workout.custom_meta && workout.custom_meta.note" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Note</h2>
+        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ workout.custom_meta.note }}</p>
+      </div>
+
       <!-- Heart Rate Zones -->
       <div v-if="workout.heart_rate_zones && workout.heart_rate_zones.length > 0" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Heart Rate Zones</h2>
