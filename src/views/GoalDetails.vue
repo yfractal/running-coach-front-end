@@ -33,6 +33,39 @@ const showEditGoalModal = ref(false)
 // Computed
 const goalId = computed(() => route.params.id)
 
+// Group events by day
+const groupedEvents = computed(() => {
+  const groups = {}
+  
+  events.value.forEach(event => {
+    const dateKey = event.start_at || event.start_date
+    if (!dateKey) return
+    
+    const date = new Date(dateKey)
+    const dayKey = date.toISOString().split('T')[0] // YYYY-MM-DD format
+    
+    if (!groups[dayKey]) {
+      groups[dayKey] = {
+        date: dayKey,
+        displayDate: date.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        events: []
+      }
+    }
+    
+    groups[dayKey].events.push(event)
+  })
+  
+  // Sort groups by date (newest first)
+  return Object.values(groups).sort((a, b) => {
+    return new Date(b.date) - new Date(a.date)
+  })
+})
+
 // Format date for display
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
@@ -479,42 +512,52 @@ onMounted(fetchGoalData)
             No events found for the selected time range.
           </div>
           <div v-else>
-            <div class="space-y-4 mb-6">
-              <div
-                v-for="event in events"
-                :key="event.id"
-                class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div class="flex items-start justify-between">
-                  <div class="flex-1">
-                    <h3 class="text-base font-semibold text-gray-900 mb-1">
-                      {{ event.title || event.name || 'Untitled Event' }}
-                      <span v-if="event.quality && event.unit" class="text-sm font-normal text-gray-600 ml-2">
-                        ({{ event.quality }} {{ event.unit }})
-                      </span>
-                    </h3>
-                    <p v-if="event.description" class="text-sm text-gray-600 mb-2">
-                      {{ event.description }}
-                    </p>
-                    <div class="flex items-center space-x-4 text-xs text-gray-500">
-                      <span v-if="event.start_at || event.start_date">
-                        <span class="font-medium">Start:</span> {{ formatDateTimeWithDay(event.start_at || event.start_date) }}
-                      </span>
-                      <span v-if="event.end_at || event.end_date">
-                        <span class="font-medium">End:</span> {{ formatDateTime(event.end_at || event.end_date) }}
-                      </span>
-                      <span v-if="event.created_at">
-                        <span class="font-medium">Created:</span> {{ formatDate(event.created_at) }}
-                      </span>
+            <div class="space-y-6 mb-6">
+              <div v-for="group in groupedEvents" :key="group.date" class="space-y-4">
+                <!-- Day Header -->
+                <div class="sticky top-0 bg-white border-b-2 border-gray-300 pb-2 pt-2 z-10">
+                  <h3 class="text-lg font-semibold text-gray-900">{{ group.displayDate }}</h3>
+                </div>
+                
+                <!-- Events for this day -->
+                <div class="space-y-4 pl-4">
+                  <div
+                    v-for="event in group.events"
+                    :key="event.id"
+                    class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <h3 class="text-base font-semibold text-gray-900 mb-1">
+                          {{ event.title || event.name || 'Untitled Event' }}
+                          <span v-if="event.quality && event.unit" class="text-sm font-normal text-gray-600 ml-2">
+                            ({{ event.quality }} {{ event.unit }})
+                          </span>
+                        </h3>
+                        <p v-if="event.description" class="text-sm text-gray-600 mb-2">
+                          {{ event.description }}
+                        </p>
+                        <div class="flex items-center space-x-4 text-xs text-gray-500">
+                          <span v-if="event.start_at || event.start_date">
+                            <span class="font-medium">Start:</span> {{ formatDateTimeWithDay(event.start_at || event.start_date) }}
+                          </span>
+                          <span v-if="event.end_at || event.end_date">
+                            <span class="font-medium">End:</span> {{ formatDateTime(event.end_at || event.end_date) }}
+                          </span>
+                          <span v-if="event.created_at">
+                            <span class="font-medium">Created:</span> {{ formatDate(event.created_at) }}
+                          </span>
+                        </div>
+                      </div>
+                      <div v-if="event.status" class="ml-4">
+                        <span
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          :class="getStatusColor(event.status)"
+                        >
+                          {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div v-if="event.status" class="ml-4">
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      :class="getStatusColor(event.status)"
-                    >
-                      {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
-                    </span>
                   </div>
                 </div>
               </div>
