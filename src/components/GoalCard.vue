@@ -74,6 +74,16 @@ const getDaysUntilTarget = (targetDate) => {
   return diffDays
 }
 
+// Calculate days since creation
+const getDaysSinceCreation = (createdAt) => {
+  if (!createdAt) return null
+  const created = new Date(createdAt)
+  const today = new Date()
+  const diffTime = today - created
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays
+}
+
 // Handle status change
 const handleStatusChange = async (newStatus) => {
   try {
@@ -374,6 +384,14 @@ const navigateToGoalDetails = () => {
             ? `${getDaysUntilTarget(goal.target_date)} days left` 
             : `${Math.abs(getDaysUntilTarget(goal.target_date))} days overdue` 
           }}
+        </span>
+      </div>
+
+      <!-- Created At and Days Passed -->
+      <div v-if="goal.created_at" class="flex items-center justify-between text-sm text-gray-500 mt-2">
+        <span>Created: {{ formatDate(goal.created_at) }}</span>
+        <span v-if="getDaysSinceCreation(goal.created_at) !== null">
+          {{ getDaysSinceCreation(goal.created_at) }} days passed
         </span>
       </div>
     </div>
